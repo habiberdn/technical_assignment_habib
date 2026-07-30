@@ -5,9 +5,171 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  DOKTER
+  PETUGAS_PENDAFTARAN
+}
+
+enum JenisKelamin {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum JenisPembayaran {
+  UMUM
+  BPJS
+  ASURANSI
+}
+
+enum StatusKunjungan {
+  MENUNGGU
+  CHECK_IN
+  PEMERIKSAAN
+  SELESAI
+}
+
+enum StatusAntrean {
+  MENUNGGU
+  DIPANGGIL
+  SELESAI
+  DILEWATI
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  nama      String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  poliId String?
+  poli   Poli?   @relation(fields: [poliId], references: [id])
+
+  registrasiSebagaiDokter  Registrasi[] @relation("DokterRegistrasi")
+  registrasiSebagaiPetugas Registrasi[] @relation("PetugasRegistrasi")
+
+  @@map("users")
+}
+
+model Pasien {
+  id           String       @id @default(cuid())
+  noRekamMedis String       @unique
+  nik          String       @unique
+  nama         String
+  jenisKelamin JenisKelamin
+  tanggalLahir DateTime     @db.Date
+  noTelepon    String
+  alamat       String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  registrasi Registrasi[]
+
+  @@index([nama])
+  @@map("pasien")
+}
+
+model Poli {
+  id   String @id @default(cuid())
+  kode String @unique
+  nama String
+
+  dokter     User[]
+  registrasi Registrasi[]
+
+  @@map("poli")
+}
+
+model Registrasi {
+  id               String          @id @default(cuid())
+  pasienId         String
+  pasien           Pasien          @relation(fields: [pasienId], references: [id])
+  dokterId         String
+  dokter           User            @relation("DokterRegistrasi", fields: [dokterId], references: [id])
+  petugasId        String
+  petugas          User            @relation("PetugasRegistrasi", fields: [petugasId], references: [id])
+  poliId           String
+  poli             Poli            @relation(fields: [poliId], references: [id])
+  tanggalKunjungan DateTime        @db.Date
+  jenisPembayaran  JenisPembayaran
+  keluhanAwal      String
+  status           StatusKunjungan @default(MENUNGGU)
+
+  // Field antrean — digenerate otomatis saat baris ini dibuat
+  nomorUrutAntrean Int
+  nomorAntrean     String // kode poli + nomorUrutAntrean, contoh "A001"
+  statusAntrean    StatusAntrean @default(MENUNGGU)
+  dipanggilPadaJam DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pemeriksaan Pemeriksaan?
+
+  // Menjamin nomor antrean tidak bentrok per poli per hari
+  @@unique([poliId, tanggalKunjungan, nomorUrutAntrean])
+  @@index([tanggalKunjungan, status])
+  @@map("registrasi")
+}
+
+model Pemeriksaan {
+  id           String     @id @default(cuid())
+  registrasiId String     @unique
+  registrasi   Registrasi @relation(fields: [registrasiId], references: [id])
+
+  // Subjective
+  keluhanSubjective String
+
+  // Objective
+  tekananSistolik  Int
+  tekananDiastolik Int
+  suhuTubuh        Float
+  beratBadan       Float
+  tinggiBadan      Float
+
+  // Assessment
+  diagnosa String
+
+  // Plan
+  rencanaTerapi String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tindakan TindakanMedis[]
+  resep    ResepObat[]
+
+  @@map("pemeriksaan")
+}
+
+model TindakanMedis {
+  id            String      @id @default(cuid())
+  pemeriksaanId String
+  pemeriksaan   Pemeriksaan @relation(fields: [pemeriksaanId], references: [id])
+  namaTindakan  String
+  catatan       String?
+
+  @@map("tindakan_medis")
+}
+
+model ResepObat {
+  id            String      @id @default(cuid())
+  pemeriksaanId String
+  pemeriksaan   Pemeriksaan @relation(fields: [pemeriksaanId], references: [id])
+  namaObat      String
+  dosis         String // contoh "3x1"
+  jumlah        Int
+  aturanPakai   String
+
+  @@map("resep_obat")
 }

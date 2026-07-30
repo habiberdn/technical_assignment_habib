@@ -7,7 +7,8 @@
     
     /* Output & Root */
     "outDir": "./dist",                  
-    
+    "allowImportingTsExtensions": true,    
+    "noEmit": true,
     /* Interoperabilitas Modul */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
