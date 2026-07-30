@@ -1,17 +1,31 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import hpp from "hpp";
 import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
+import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
+import { xssSanitizer } from "./middlewares/xss.middleware.js";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Security HTTP Headers
+app.use(helmet());
 
-// Routes
+app.use(cors());
+
+// Rate Limiting 
+app.use("/api", generalLimiter);
+
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+app.use(hpp());
+
+app.use(xssSanitizer);
+
 app.use("/api/auth", authRouter);
 
-// Global Error Handler
 app.use(errorHandler);
 
 export default app;
