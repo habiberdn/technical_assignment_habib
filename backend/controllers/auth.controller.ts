@@ -4,7 +4,8 @@ import { authService } from "../services/auth.service.js";
 export class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await authService.register(req.body);
+      const currentUserRole = req.user?.role;
+      const user = await authService.register(req.body, currentUserRole);
       return res.status(201).json({
         success: true,
         message: "Pengguna berhasil didaftarkan",

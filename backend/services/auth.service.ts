@@ -1,11 +1,21 @@
-import prisma from "../lib/prisma.ts";
+import prisma from "../lib/prisma.js";
 import { RegisterUserDTO, LoginUserDTO } from "../dtos/auth.dto.js";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { generateToken } from "../utils/jwt.js";
 import { HttpError } from "../middlewares/error.middleware.js";
 
 export class AuthService {
-  async register(data: RegisterUserDTO) {
+  async register(data: RegisterUserDTO, currentUserRole?: string) {
+    const totalUsers = await prisma.user.count();
+
+    // Jika sudah ada user di sistem, registrasi baru WAJIB dilakukan oleh ADMIN
+    if (totalUsers > 0 && currentUserRole !== "ADMIN") {
+      throw new HttpError(
+        403,
+        "Akses ditolak. Hanya Administrator yang dapat mendaftarkan pengguna baru"
+      );
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { username: data.username },
     });
@@ -21,6 +31,10 @@ export class AuthService {
       if (!poliExists) {
         throw new HttpError(404, "Poli tidak ditemukan");
       }
+    }
+
+    if (data.role === "DOKTER" && !data.poliId) {
+      throw new HttpError(400, "Pengguna dengan role DOKTER wajib memilih Poli tempat bertugas");
     }
 
     const hashedPassword = await hashPassword(data.password);
