@@ -1,3 +1,4 @@
+import { Prisma, StatusKunjungan, StatusAntrean } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import { CreateRegistrasiDTO, UpdateStatusRegistrasiDTO } from "../dtos/registrasi.dto.js";
 import { HttpError } from "../middlewares/error.middleware.js";
@@ -101,7 +102,7 @@ export class RegistrasiService {
     statusAntrean?: string;
     search?: string;
   }) {
-    const where: any = {};
+    const where: Prisma.RegistrasiWhereInput = {};
 
     if (query.tanggalKunjungan) {
       const date = new Date(query.tanggalKunjungan);
@@ -122,11 +123,11 @@ export class RegistrasiService {
     }
 
     if (query.status) {
-      where.status = query.status;
+      where.status = query.status as StatusKunjungan;
     }
 
     if (query.statusAntrean) {
-      where.statusAntrean = query.statusAntrean;
+      where.statusAntrean = query.statusAntrean as StatusAntrean;
     }
 
     if (query.search) {
@@ -198,7 +199,7 @@ export class RegistrasiService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const where: any = {
+    const where: Prisma.RegistrasiWhereInput = {
       poliId,
       tanggalKunjungan: today,
       statusAntrean: "MENUNGGU",
@@ -232,7 +233,7 @@ export class RegistrasiService {
       );
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.RegistrasiUpdateInput = {};
     if (data.status) updateData.status = data.status;
     if (data.statusAntrean) updateData.statusAntrean = data.statusAntrean;
 
