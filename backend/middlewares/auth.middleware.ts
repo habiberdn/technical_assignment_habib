@@ -12,13 +12,20 @@ declare global {
 }
 
 export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(new HttpError(401, "Akses ditolak. Token tidak ditemukan"));
+  // 1. Cek token di HttpOnly Cookie (Utama untuk Web Frontend)
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+  // 2. Cek token di Header Authorization Bearer (Untuk Postman / Mobile App)
+  else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
   }
 
-  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return next(new HttpError(401, "Akses ditolak. Token tidak ditemukan di cookie maupun header"));
+  }
 
   try {
     const decoded = verifyToken(token);

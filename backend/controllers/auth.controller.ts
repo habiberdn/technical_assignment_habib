@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth.service.js";
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  maxAge: 24 * 60 * 60 * 1000, // 1 hari
+};
+
 export class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
@@ -19,6 +26,9 @@ export class AuthController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await authService.login(req.body);
+
+      res.cookie("token", result.token, COOKIE_OPTIONS);
+
       return res.status(200).json({
         success: true,
         message: "Login berhasil",
@@ -47,6 +57,13 @@ export class AuthController {
     try {
       const userId = req.user!.id;
       const result = await authService.logout(userId);
+
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+      });
+
       return res.status(200).json({
         success: true,
         message: result.message,

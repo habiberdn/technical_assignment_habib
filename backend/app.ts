@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import hpp from "hpp";
+import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth.route.js";
 import poliRouter from "./routes/poli.route.js";
 import pasienRouter from "./routes/pasien.route.js";
@@ -17,7 +18,16 @@ const app = express();
 // Security HTTP Headers
 app.use(helmet());
 
-app.use(cors());
+// CORS Policy dengan dukungan Cookies
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || true,
+    credentials: true,
+  })
+);
+
+// Cookie Parser Middleware
+app.use(cookieParser());
 
 // Rate Limiting
 app.use("/api", generalLimiter);
