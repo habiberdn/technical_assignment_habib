@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch {
       setUser(null);
     } finally {
-      // ✅ Ini AMAN karena dipanggil secara Asynchronous (setelah proses await selesai)
       setLoading(false);
     }
   };
