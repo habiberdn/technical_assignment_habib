@@ -22,11 +22,17 @@ export const xssSanitizer = (req: Request, _res: Response, next: NextFunction) =
   if (req.body) {
     req.body = sanitize(req.body);
   }
-  if (req.query) {
-    req.query = sanitize(req.query);
+  if (req.query && typeof req.query === "object") {
+    const sanitizedQuery = sanitize(req.query);
+    for (const key of Object.keys(sanitizedQuery)) {
+      req.query[key] = sanitizedQuery[key];
+    }
   }
-  if (req.params) {
-    req.params = sanitize(req.params);
+  if (req.params && typeof req.params === "object") {
+    const sanitizedParams = sanitize(req.params);
+    for (const key of Object.keys(sanitizedParams)) {
+      req.params[key] = sanitizedParams[key];
+    }
   }
   next();
 };
