@@ -1,10 +1,9 @@
 import { Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "../components/auth/ProtectedRoute.js";
-import { Layout } from "../components/layout/Layout.js";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute.js";
+import { Layout } from "@/components/layout/Layout.js";
 
-import LoginPage from "../pages/auth/Login.js";
-// Halaman modul akan di-import di sini seiring pembuatan UI modul
-// import DashboardPage from "../pages/dashboard/DashboardPage.js";
+import LoginPage from "@/pages/auth/Login.js";
+import AdminDashboard from "@/pages/dashboard/AdminDashboard.js";
 
 export function AppRoutes() {
   return (
@@ -15,7 +14,7 @@ export function AppRoutes() {
       {/* Authenticated Protected Shell */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<div className="p-6">Dashboard (Dalam Pengembangan)</div>} />
+          <Route path="/" element={<AdminDashboard />} />
           <Route path="/pasien" element={<div className="p-6">Master Pasien (Dalam Pengembangan)</div>} />
           <Route path="/antrean" element={<div className="p-6">Modul Antrean (Dalam Pengembangan)</div>} />
           <Route path="/pemeriksaan" element={<div className="p-6">Pemeriksaan Dokter SOAP (Dalam Pengembangan)</div>} />
