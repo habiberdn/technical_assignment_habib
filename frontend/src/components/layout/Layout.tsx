@@ -112,7 +112,7 @@ export const Layout: React.FC = () => {
               MediKlinik SIMRS
             </h1>
             <p className="text-[10px] font-medium text-emerald-600">
-              Clinical System
+              Sistem Klinik
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ export const Layout: React.FC = () => {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700"
           >
             <Plus size={16} />
-            New Registration
+            Pendaftaran Baru
           </Link>
         </div>
       </aside>
@@ -165,7 +165,7 @@ export const Layout: React.FC = () => {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen((prev) => !prev)}
-              aria-label="User menu"
+              aria-label="Menu Pengguna"
               aria-expanded={isUserMenuOpen}
               className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-gray-100 focus:outline-none"
             >
@@ -229,7 +229,7 @@ export const Layout: React.FC = () => {
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={16} className="text-red-500" />
-                    Logout
+                    Keluar
                   </button>
                 </div>
               </div>

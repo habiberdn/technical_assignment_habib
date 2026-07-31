@@ -76,7 +76,7 @@ export function LoginPage() {
 
         <h1 className="text-center text-xl font-bold text-[#0d6d64]">MediKlinik SIMRS</h1>
         <p className="mt-1 text-center text-xs font-medium tracking-wide text-[#0d6d64]/70">
-          Clinical Precision System
+          Sistem Presisi Klinis
         </p>
 
         {errorMessage && (
@@ -88,7 +88,7 @@ export function LoginPage() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
           <div>
             <label htmlFor="identifier" className="mb-1 block text-xs font-semibold text-[#8a4a43]">
-              Username or Email
+              Username atau Email
             </label>
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -100,7 +100,7 @@ export function LoginPage() {
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="Enter your credentials"
+                placeholder="Masukkan username atau email"
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-base text-gray-800 placeholder:text-gray-400 focus:border-[#0d6d64] focus:outline-none focus:ring-2 focus:ring-[#0d6d64]/20 sm:text-sm"
               />
             </div>
@@ -122,13 +122,13 @@ export function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Masukkan password"
                 className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-10 text-base text-gray-800 placeholder:text-gray-400 focus:border-[#0d6d64] focus:outline-none focus:ring-2 focus:ring-[#0d6d64]/20 sm:text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 aria-pressed={showPassword}
                 className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-gray-400 hover:text-gray-600"
               >
@@ -143,7 +143,7 @@ export function LoginPage() {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0d6d64] py-3 text-sm font-semibold text-white transition hover:bg-[#0a544e] disabled:cursor-not-allowed disabled:opacity-60 sm:py-2.5"
           >
             <LogIn className="h-4 w-4" />
-            {isSubmitting ? "Signing in..." : "Login to System"}
+            {isSubmitting ? "Memproses..." : "Masuk ke Sistem"}
           </button>
         </form>
 
