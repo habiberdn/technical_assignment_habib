@@ -21,9 +21,10 @@ export const StatusBadge: React.FC<{ status: QueueStatus }> = ({ status }) => {
 interface QueueTableProps {
   entries: QueueEntry[];
   loading?: boolean;
+  onActionClick?: (entry: QueueEntry) => void;
 }
 
-export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false }) => {
+export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false, onActionClick }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -81,7 +82,11 @@ export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false
                     <StatusBadge status={entry.status} />
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100" aria-label="Aksi antrean">
+                    <button
+                      onClick={() => onActionClick?.(entry)}
+                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                      aria-label="Aksi antrean"
+                    >
                       <MoreVertical size={16} />
                     </button>
                   </td>

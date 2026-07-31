@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute.js";
 import { Layout } from "@/components/layout/Layout.js";
 
@@ -16,10 +16,15 @@ export function AppRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<AdminDashboard />} />
           <Route path="/pasien" element={<div className="p-6">Master Pasien (Dalam Pengembangan)</div>} />
+          <Route path="/poli" element={<div className="p-6">Master Poli (Dalam Pengembangan)</div>} />
           <Route path="/antrean" element={<div className="p-6">Modul Antrean (Dalam Pengembangan)</div>} />
           <Route path="/pemeriksaan" element={<div className="p-6">Pemeriksaan Dokter SOAP (Dalam Pengembangan)</div>} />
+          <Route path="/staf" element={<div className="p-6">Kelola Staf (Dalam Pengembangan)</div>} />
         </Route>
       </Route>
+
+      {/* Fallback Route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

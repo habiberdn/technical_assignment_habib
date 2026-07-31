@@ -10,10 +10,10 @@ export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-950 text-slate-100">
+      <div className="flex h-screen w-full items-center justify-center bg-gray-50 text-gray-700">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
-          <p className="text-sm font-medium text-slate-400">Memuat Sesi Pengguna...</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent"></div>
+          <p className="text-xs font-semibold tracking-wide text-gray-500">Memuat Sesi Pengguna...</p>
         </div>
       </div>
     );

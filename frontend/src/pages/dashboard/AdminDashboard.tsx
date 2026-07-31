@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
 import StatCard from "./components/StatCard.js";
 import QueueTable from "./components/QueueTable.js";
 import { getDashboardStats, getTodayQueueList } from "@/services/dashboardService.js";
-import type { DashboardStats, StatCardData, QueueEntry } from "@/types/dashboard.types.js";
+import type { DashboardStats, StatCardData, QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
+
+interface ApiQueueItem {
+  id: string;
+  nomorAntrean?: string;
+  status?: QueueStatus;
+  pasien?: {
+    nama?: string;
+    nomorRM?: string;
+  };
+  poli?: {
+    nama?: string;
+  };
+}
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -16,10 +29,12 @@ export function AdminDashboard() {
   const [queues, setQueues] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchDashboardData = async () => {
     try {
       setIsRefreshing(true);
+      setError(null);
       const [statsData, queueData] = await Promise.all([
         getDashboardStats(),
         getTodayQueueList(),
@@ -27,14 +42,15 @@ export function AdminDashboard() {
       setStats(statsData);
 
       // Transform raw registrasi data to QueueEntry format
-      const formattedQueues: QueueEntry[] = (queueData || []).map((item: any) => {
+      const formattedQueues: QueueEntry[] = ((queueData || []) as ApiQueueItem[]).map((item) => {
         const patientName = item.pasien?.nama || "Pasien Noname";
         const initials = patientName
-          .split(" ")
-          .map((n: string) => n[0])
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((n) => n[0])
           .join("")
           .substring(0, 2)
-          .toUpperCase();
+          .toUpperCase() || "PN";
 
         return {
           id: item.id,
@@ -51,6 +67,7 @@ export function AdminDashboard() {
       setQueues(formattedQueues);
     } catch (err) {
       console.error("[Dashboard Fetch Error]", err);
+      setError("Gagal memuat data dashboard. Periksa koneksi ke server.");
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -124,6 +141,22 @@ export function AdminDashboard() {
           Refresh Data
         </button>
       </div>
+
+      {/* Alert Error Notification Banner */}
+      {error && (
+        <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700 shadow-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={18} className="shrink-0 text-red-600" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={fetchDashboardData}
+            className="rounded-lg bg-red-600 px-3 py-1.5 font-semibold text-white transition hover:bg-red-700"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
 
       {/* Grid 5 Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
