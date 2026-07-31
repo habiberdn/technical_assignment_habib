@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "nodemon --exec tsx server.ts",
     "start": "tsx server.ts",
+    "db:seed": "prisma db seed",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
