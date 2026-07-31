@@ -3,13 +3,30 @@ import { CreatePemeriksaanDTO, UpdatePemeriksaanDTO } from "../dtos/pemeriksaan.
 import { HttpError } from "../middlewares/error.middleware.js";
 
 export class PemeriksaanService {
-  async createPemeriksaan(data: CreatePemeriksaanDTO) {
+  async createPemeriksaan(currentUser: { id: string; role: string }, data: CreatePemeriksaanDTO) {
     const registrasi = await prisma.registrasi.findUnique({
       where: { id: data.registrasiId },
     });
 
     if (!registrasi) {
       throw new HttpError(404, "Data registrasi/kunjungan tidak ditemukan");
+    }
+
+    if (currentUser.role === "DOKTER" && registrasi.dokterId !== currentUser.id) {
+      throw new HttpError(
+        403,
+        "Akses ditolak. Anda hanya dapat melakukan pemeriksaan untuk pasien yang terdaftar di bawah penanganan Anda"
+      );
+    }
+
+    if (
+      registrasi.status === "MENUNGGU" &&
+      registrasi.statusAntrean === "MENUNGGU"
+    ) {
+      throw new HttpError(
+        400,
+        "Pemeriksaan hanya dapat dilakukan untuk pasien yang sudah dipanggil atau melakukan Check In"
+      );
     }
 
     const existingExam = await prisma.pemeriksaan.findUnique({
@@ -88,13 +105,23 @@ export class PemeriksaanService {
     return pemeriksaan;
   }
 
-  async updatePemeriksaan(id: string, data: UpdatePemeriksaanDTO) {
-    await this.getPemeriksaanById(id);
+  async updatePemeriksaan(currentUser: { id: string; role: string }, id: string, data: UpdatePemeriksaanDTO) {
+    const existingPemeriksaan = await this.getPemeriksaanById(id);
+
+    if (
+      currentUser.role === "DOKTER" &&
+      existingPemeriksaan.registrasi.dokterId !== currentUser.id
+    ) {
+      throw new HttpError(
+        403,
+        "Akses ditolak. Anda hanya dapat memperbarui data pemeriksaan milik pasien Anda"
+      );
+    }
 
     return prisma.$transaction(async (tx) => {
       const { tindakan, resep, registrasiId, ...examData } = data;
 
-      const updatedExam = await tx.pemeriksaan.update({
+      await tx.pemeriksaan.update({
         where: { id },
         data: examData,
       });

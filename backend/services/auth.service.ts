@@ -117,6 +117,13 @@ export class AuthService {
 
     return user;
   }
+
+  async logout(userId: string) {
+    await this.getProfile(userId);
+    return {
+      message: "Logout berhasil. Silakan hapus token di sisi klien",
+    };
+  }
 }
 
 export const authService = new AuthService();

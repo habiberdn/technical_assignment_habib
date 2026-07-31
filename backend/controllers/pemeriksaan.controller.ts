@@ -4,7 +4,8 @@ import { pemeriksaanService } from "../services/pemeriksaan.service.js";
 export class PemeriksaanController {
   async createPemeriksaan(req: Request, res: Response, next: NextFunction) {
     try {
-      const pemeriksaan = await pemeriksaanService.createPemeriksaan(req.body);
+      const currentUser = { id: req.user!.id, role: req.user!.role };
+      const pemeriksaan = await pemeriksaanService.createPemeriksaan(currentUser, req.body);
       return res.status(201).json({
         success: true,
         message: "Data pemeriksaan medis berhasil disimpan",
@@ -32,7 +33,8 @@ export class PemeriksaanController {
   async updatePemeriksaan(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
-      const pemeriksaan = await pemeriksaanService.updatePemeriksaan(id, req.body);
+      const currentUser = { id: req.user!.id, role: req.user!.role };
+      const pemeriksaan = await pemeriksaanService.updatePemeriksaan(currentUser, id, req.body);
       return res.status(200).json({
         success: true,
         message: "Data pemeriksaan medis berhasil diperbarui",

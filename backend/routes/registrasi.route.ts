@@ -15,6 +15,13 @@ registrasiRouter.get(
   registrasiController.getRegistrasiList
 );
 
+// PENTING: Route khusus /panggil-next HARUS ditaruh sebelum route dinamis /:id
+registrasiRouter.patch(
+  "/panggil-next",
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
+  registrasiController.panggilNextAntrean
+);
+
 registrasiRouter.get(
   "/:id",
   authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),

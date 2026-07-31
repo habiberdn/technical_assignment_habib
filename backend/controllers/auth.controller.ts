@@ -42,6 +42,19 @@ export class AuthController {
       next(error);
     }
   }
+
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.id;
+      const result = await authService.logout(userId);
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

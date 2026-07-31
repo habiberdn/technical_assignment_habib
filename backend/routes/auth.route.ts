@@ -16,6 +16,7 @@ const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction) 
     try {
       req.user = verifyToken(token);
     } catch {
+      // Abaikan jika token invalid
     }
   }
   next();
@@ -34,6 +35,12 @@ authRouter.post(
   authLimiter,
   validateRequest(loginUserSchema),
   authController.login
+);
+
+authRouter.post(
+  "/logout",
+  authenticate,
+  authController.logout
 );
 
 authRouter.get(

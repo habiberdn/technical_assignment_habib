@@ -25,8 +25,30 @@ export class RegistrasiService {
       throw new HttpError(404, "Poli tidak ditemukan");
     }
 
+    // Validasi: Pastikan Dokter bertugas di Poli yang sesuai jika terikat Poli
+    if (dokter.poliId && dokter.poliId !== data.poliId) {
+      throw new HttpError(400, "Dokter yang dipilih tidak bertugas di Poli tersebut");
+    }
+
     const targetDate = data.tanggalKunjungan ? new Date(data.tanggalKunjungan) : new Date();
     targetDate.setHours(0, 0, 0, 0);
+
+    // Cek apakah pasien sudah memiliki registrasi aktif (belum SELESAI) di hari yang sama
+    const existingActiveReg = await prisma.registrasi.findFirst({
+      where: {
+        pasienId: data.pasienId,
+        poliId: data.poliId,
+        tanggalKunjungan: targetDate,
+        NOT: { status: "SELESAI" },
+      },
+    });
+
+    if (existingActiveReg) {
+      throw new HttpError(
+        400,
+        `Pasien sudah terdaftar pada Poli ini untuk hari yang sama dengan antrean '${existingActiveReg.nomorAntrean}'`
+      );
+    }
 
     return prisma.$transaction(async (tx) => {
       const lastRegistrasi = await tx.registrasi.findFirst({
@@ -152,7 +174,11 @@ export class RegistrasiService {
   }
 
   async panggilAntrean(id: string) {
-    await this.getRegistrasiById(id);
+    const registrasi = await this.getRegistrasiById(id);
+
+    if (registrasi.statusAntrean === "SELESAI") {
+      throw new HttpError(400, "Antrean ini sudah selesai dilayani dan tidak dapat dipanggil kembali");
+    }
 
     return prisma.registrasi.update({
       where: { id },
@@ -168,12 +194,52 @@ export class RegistrasiService {
     });
   }
 
+  async panggilNextAntrean(poliId: string, dokterId?: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const where: any = {
+      poliId,
+      tanggalKunjungan: today,
+      statusAntrean: "MENUNGGU",
+    };
+
+    if (dokterId) {
+      where.dokterId = dokterId;
+    }
+
+    // Cari antrean berstatus MENUNGGU dengan nomor urut terkecil hari ini
+    const nextQueue = await prisma.registrasi.findFirst({
+      where,
+      orderBy: { nomorUrutAntrean: "asc" },
+    });
+
+    if (!nextQueue) {
+      throw new HttpError(404, "Tidak ada antrean berstatus MENUNGGU untuk dipanggil");
+    }
+
+    return this.panggilAntrean(nextQueue.id);
+  }
+
   async updateStatus(id: string, data: UpdateStatusRegistrasiDTO) {
-    await this.getRegistrasiById(id);
+    const current = await this.getRegistrasiById(id);
+
+    // Validasi State Machine: Status SELESAI adalah status final
+    if (current.status === "SELESAI" && data.status && data.status !== "SELESAI") {
+      throw new HttpError(
+        400,
+        "Status kunjungan yang sudah SELESAI tidak dapat diubah kembali ke status sebelumnya"
+      );
+    }
 
     const updateData: any = {};
     if (data.status) updateData.status = data.status;
     if (data.statusAntrean) updateData.statusAntrean = data.statusAntrean;
+
+    // Sinkronisasi otomatis: jika status kunjungan SELESAI, status antrean ikut SELESAI
+    if (data.status === "SELESAI") {
+      updateData.statusAntrean = "SELESAI";
+    }
 
     return prisma.registrasi.update({
       where: { id },
