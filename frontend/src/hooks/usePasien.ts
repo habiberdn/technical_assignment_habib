@@ -48,8 +48,29 @@ export function usePasien() {
   }, [search, page, limit]);
 
   useEffect(() => {
-    fetchPasienList();
-  }, [fetchPasienList]);
+    let isMounted = true;
+    const loadPasienData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await pasienService.getPasienList({ search, page, limit });
+        if (isMounted) {
+          setPasienList(res.data);
+          setMeta(res.meta);
+        }
+      } catch (err: unknown) {
+        console.error("[usePasien fetch error]", err);
+        if (isMounted) setError("Gagal mengambil daftar pasien. Silakan coba lagi.");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadPasienData();
+    return () => {
+      isMounted = false;
+    };
+  }, [search, page, limit]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);

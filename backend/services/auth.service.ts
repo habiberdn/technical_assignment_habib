@@ -124,6 +124,22 @@ export class AuthService {
       message: "Logout berhasil. Silakan hapus token di sisi klien",
     };
   }
+
+  async getDoctors(poliId?: string) {
+    const where: any = { role: "DOKTER", isActive: true };
+    if (poliId) where.poliId = poliId;
+    return prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        nama: true,
+        username: true,
+        poliId: true,
+        poli: { select: { id: true, kode: true, nama: true } },
+      },
+      orderBy: { nama: "asc" },
+    });
+  }
 }
 
 export const authService = new AuthService();

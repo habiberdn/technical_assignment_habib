@@ -26,14 +26,17 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setErrors({});
-      if (mode === "edit" && initialData) {
-        setKode(initialData.kode || "");
-        setNama(initialData.nama || "");
-      } else {
-        setKode("");
-        setNama("");
-      }
+      const timer = setTimeout(() => {
+        setErrors({});
+        if (mode === "edit" && initialData) {
+          setKode(initialData.kode || "");
+          setNama(initialData.nama || "");
+        } else {
+          setKode("");
+          setNama("");
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, mode, initialData]);
 

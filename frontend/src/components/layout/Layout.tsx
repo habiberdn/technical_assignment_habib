@@ -11,7 +11,6 @@ import {
   Activity,
   UserCheck,
   Plus,
-  Settings,
   ChevronDown,
   Menu,
   X,
@@ -26,10 +25,6 @@ export const Layout: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    setIsMobileSidebarOpen(false);
-  }, [location.pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -161,6 +156,7 @@ export const Layout: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setIsMobileSidebarOpen(false)}
                 className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-emerald-50 text-emerald-600 font-semibold"
@@ -178,13 +174,17 @@ export const Layout: React.FC = () => {
 
         {/* Action Button New Registration */}
         <div className="border-t border-gray-100 p-4">
-          <Link
-            to="/antrean"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700"
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileSidebarOpen(false);
+              navigate("/antrean", { state: { openCreateModal: true, timestamp: Date.now() } });
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
           >
             <Plus size={16} />
             Pendaftaran Baru
-          </Link>
+          </button>
         </div>
       </aside>
 

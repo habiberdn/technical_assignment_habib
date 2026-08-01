@@ -72,6 +72,20 @@ export class AuthController {
       next(error);
     }
   }
+
+  async getDoctors(req: Request, res: Response, next: NextFunction) {
+    try {
+      const poliId = req.query.poliId as string;
+      const doctors = await authService.getDoctors(poliId);
+      return res.status(200).json({
+        success: true,
+        message: "Daftar dokter berhasil diambil",
+        data: doctors,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

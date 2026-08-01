@@ -30,30 +30,32 @@ export const PasienModalForm: React.FC<PasienModalFormProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setErrors({});
-      if (mode === "edit" && initialData) {
-        setNik(initialData.nik || "");
-        setNama(initialData.nama || "");
-        setJenisKelamin(initialData.jenisKelamin || "LAKI_LAKI");
+      const timer = setTimeout(() => {
+        setErrors({});
+        if (mode === "edit" && initialData) {
+          setNik(initialData.nik || "");
+          setNama(initialData.nama || "");
+          setJenisKelamin(initialData.jenisKelamin || "LAKI_LAKI");
 
-        // Format date YYYY-MM-DD for date input
-        if (initialData.tanggalLahir) {
-          const formattedDate = new Date(initialData.tanggalLahir).toISOString().split("T")[0];
-          setTanggalLahir(formattedDate);
+          if (initialData.tanggalLahir) {
+            const formattedDate = new Date(initialData.tanggalLahir).toISOString().split("T")[0];
+            setTanggalLahir(formattedDate);
+          } else {
+            setTanggalLahir("");
+          }
+
+          setNoTelepon(initialData.noTelepon || "");
+          setAlamat(initialData.alamat || "");
         } else {
+          setNik("");
+          setNama("");
+          setJenisKelamin("LAKI_LAKI");
           setTanggalLahir("");
+          setNoTelepon("");
+          setAlamat("");
         }
-
-        setNoTelepon(initialData.noTelepon || "");
-        setAlamat(initialData.alamat || "");
-      } else {
-        setNik("");
-        setNama("");
-        setJenisKelamin("LAKI_LAKI");
-        setTanggalLahir("");
-        setNoTelepon("");
-        setAlamat("");
-      }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, mode, initialData]);
 

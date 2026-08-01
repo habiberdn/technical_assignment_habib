@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import api from "@/services/api.js";
 
 export type Role = "ADMIN" | "DOKTER" | "PETUGAS_PENDAFTARAN";
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const res = await api.get("/auth/me");
       if (res.data && res.data.data) {
@@ -40,10 +40,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    checkAuth();
+    let isMounted = true;
+    const fetchInitialAuth = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        if (isMounted) {
+          if (res.data && res.data.data) {
+            setUser(res.data.data);
+          } else {
+            setUser(null);
+          }
+        }
+      } catch {
+        if (isMounted) setUser(null);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchInitialAuth();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = (userData: User) => {

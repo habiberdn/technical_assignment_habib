@@ -75,7 +75,57 @@ export function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    let isMounted = true;
+    const loadDashboard = async () => {
+      try {
+        setIsRefreshing(true);
+        setError(null);
+        const [statsData, queueData] = await Promise.all([
+          getDashboardStats(),
+          getTodayQueueList(),
+        ]);
+        if (isMounted) {
+          setStats(statsData);
+
+          const formattedQueues: QueueEntry[] = ((queueData || []) as ApiQueueItem[]).map((item) => {
+            const patientName = item.pasien?.nama || "Pasien Noname";
+            const initials = patientName
+              .split(/\s+/)
+              .filter(Boolean)
+              .map((n) => n[0])
+              .join("")
+              .substring(0, 2)
+              .toUpperCase() || "PN";
+
+            return {
+              id: item.id,
+              patientName,
+              medicalRecordNo: `RM: ${item.pasien?.nomorRM || "-"}`,
+              initials,
+              avatarColor: "bg-emerald-100 text-emerald-700",
+              clinic: item.poli?.nama || "Poli Umum",
+              queueNo: item.nomorAntrean || "-",
+              status: item.status || "MENUNGGU",
+            };
+          });
+
+          setQueues(formattedQueues);
+        }
+      } catch (err) {
+        console.error("[Dashboard Fetch Error]", err);
+        if (isMounted) setError("Gagal memuat data dashboard. Periksa koneksi ke server.");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    };
+
+    loadDashboard();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const statCardsData: StatCardData[] = [

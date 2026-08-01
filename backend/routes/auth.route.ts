@@ -49,4 +49,10 @@ authRouter.get(
   authController.getProfile
 );
 
+authRouter.get(
+  "/doctors",
+  authenticate,
+  authController.getDoctors
+);
+
 export default authRouter;

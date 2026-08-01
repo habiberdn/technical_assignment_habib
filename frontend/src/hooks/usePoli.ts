@@ -33,8 +33,28 @@ export function usePoli() {
   }, []);
 
   useEffect(() => {
-    fetchPoliList();
-  }, [fetchPoliList]);
+    let isMounted = true;
+    const loadPoliData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await poliService.getAllPoli();
+        if (isMounted) {
+          setPoliList(data);
+        }
+      } catch (err: unknown) {
+        console.error("[usePoli fetch error]", err);
+        if (isMounted) setError("Gagal mengambil data poliklinik. Silakan coba lagi.");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadPoliData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Client-side search filtering
   const filteredPoliList = useMemo(() => {
