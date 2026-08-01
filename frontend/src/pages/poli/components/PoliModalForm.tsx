@@ -2,6 +2,7 @@ import React, { useState, useEffect, type FormEvent } from "react";
 import { X, Save, Building2, Hash } from "lucide-react";
 import { createPoliSchema } from "@/dtos/poli.dto.js";
 import type { Poli } from "@/types/poli.types.js";
+import { INITIAL_POLI_FORM_DATA, type PoliFormData } from "@/constants/poli.js";
 
 interface PoliModalFormProps {
   isOpen: boolean;
@@ -12,16 +13,6 @@ interface PoliModalFormProps {
   onSubmit: (data: { kode: string; nama: string }) => void;
 }
 
-interface PoliFormData {
-  kode: string;
-  nama: string;
-}
-
-const initialFormData: PoliFormData = {
-  kode: "",
-  nama: "",
-};
-
 export const PoliModalForm: React.FC<PoliModalFormProps> = ({
   isOpen,
   mode,
@@ -30,7 +21,7 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [formData, setFormData] = useState<PoliFormData>(initialFormData);
+  const [formData, setFormData] = useState<PoliFormData>(INITIAL_POLI_FORM_DATA);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -43,7 +34,7 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
             nama: initialData.nama || "",
           });
         } else {
-          setFormData(initialFormData);
+          setFormData(INITIAL_POLI_FORM_DATA);
         }
       }, 0);
       return () => clearTimeout(timer);

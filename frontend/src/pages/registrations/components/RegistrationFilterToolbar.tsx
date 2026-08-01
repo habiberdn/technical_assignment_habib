@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import type { FiltersState } from "../types/registrationPage.types.js";
 import type { Poli } from "@/types/poli.types.js";
 import type { DokterItem } from "@/types/registrasi.types.js";
+import { STATUS_FILTER_OPTIONS } from "@/constants/registrasi.js";
 
 interface RegistrationFilterToolbarProps {
   filters: FiltersState;
@@ -87,11 +88,11 @@ export const RegistrationFilterToolbar: React.FC<RegistrationFilterToolbarProps>
           onChange={(e) => onFilterChange("selectedStatus", e.target.value)}
           className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
         >
-          <option value="all">Semua Status</option>
-          <option value="MENUNGGU">Menunggu</option>
-          <option value="CHECK_IN">Check In</option>
-          <option value="PEMERIKSAAN">Pemeriksaan</option>
-          <option value="SELESAI">Selesai</option>
+          {STATUS_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState, useRef, type ChangeEvent } from "react";
 import { Upload, FileSpreadsheet, X, CheckCircle2, AlertTriangle, Download } from "lucide-react";
 import { pasienService } from "@/services/pasienService.js";
 import type { CreatePasienDTO } from "@/dtos/pasien.dto.js";
+import { PASIEN_CSV_TEMPLATE } from "@/constants/pasien.js";
 
 interface PasienImportModalProps {
   isOpen: boolean;
@@ -121,17 +122,11 @@ export const PasienImportModal: React.FC<PasienImportModalProps> = ({
 
   // Download Sample Template CSV
   const downloadTemplate = () => {
-    const templateContent =
-      "\uFEFF" +
-      "NIK;Nama Pasien;Jenis Kelamin;Tanggal Lahir;No. Telepon;Alamat\n" +
-      "3201234567890001;Budi Santoso;Laki-laki;1992-05-14;081234567890;Jl. Merdeka No. 10 Jakarta\n" +
-      "3201234567890002;Siti Aminah;Perempuan;1995-08-20;081987654321;Jl. Mawar No. 5 Bandung\n";
-
-    const blob = new Blob([templateContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([PASIEN_CSV_TEMPLATE.content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "Template_Import_Pasien.csv";
+    link.download = PASIEN_CSV_TEMPLATE.fileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

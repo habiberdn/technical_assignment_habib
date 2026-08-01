@@ -5,6 +5,7 @@ import QueueTable from "./components/QueueTable.js";
 import { getDashboardStats, getTodayQueueList } from "@/services/dashboardService.js";
 import { registrasiService } from "@/services/registrasiService.js";
 import type { DashboardStats, StatCardData, QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
+import { DEFAULT_DASHBOARD_STATS, getStatCardsConfig } from "@/constants/dashboard.js";
 
 interface ApiQueueItem {
   id: string;
@@ -20,13 +21,7 @@ interface ApiQueueItem {
 }
 
 export function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPasien: 0,
-    totalPasienHariIni: 0,
-    totalAntreanHariIni: 0,
-    totalPasienMenunggu: 0,
-    totalPasienSelesai: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>(DEFAULT_DASHBOARD_STATS);
   const [queues, setQueues] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -141,49 +136,7 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const statCardsData: StatCardData[] = [
-    {
-      id: "total-pasien",
-      label: "Total Pasien Terdaftar",
-      value: stats.totalPasien,
-      icon: "users",
-      iconBg: "bg-blue-50",
-      iconColor: "text-blue-600",
-    },
-    {
-      id: "total-pasien-hari-ini",
-      label: "Pasien Baru Hari Ini",
-      value: stats.totalPasienHariIni,
-      icon: "calendar",
-      iconBg: "bg-emerald-50",
-      iconColor: "text-emerald-600",
-      valueColor: "text-emerald-700",
-    },
-    {
-      id: "total-antrean-hari-ini",
-      label: "Total Antrean Hari Ini",
-      value: stats.totalAntreanHariIni,
-      icon: "queue",
-      iconBg: "bg-amber-50",
-      iconColor: "text-amber-600",
-    },
-    {
-      id: "total-pasien-menunggu",
-      label: "Pasien Menunggu",
-      value: stats.totalPasienMenunggu,
-      icon: "clock",
-      iconBg: "bg-orange-50",
-      iconColor: "text-orange-600",
-    },
-    {
-      id: "total-pasien-selesai",
-      label: "Pasien Selesai Dilayani",
-      value: stats.totalPasienSelesai,
-      icon: "check",
-      iconBg: "bg-green-50",
-      iconColor: "text-green-600",
-    },
-  ];
+  const statCardsData: StatCardData[] = getStatCardsConfig(stats);
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,6 @@
 import React, { useReducer, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { Printer, Plus, RefreshCw, AlertCircle, CheckCircle2, X, Volume2 } from "lucide-react";
+import { Printer, RefreshCw, AlertCircle, CheckCircle2, X, Volume2 } from "lucide-react";
 
 import { registrasiService } from "@/services/registrasiService.js";
 import { poliService } from "@/services/poliService.js";
@@ -290,15 +290,6 @@ export const RegistrationPage: React.FC = () => {
           >
             <Printer size={15} className="text-gray-500" />
             Cetak Jadwal
-          </button>
-
-          <button
-            type="button"
-            onClick={() => dispatch({ type: "OPEN_CREATE_MODAL" })}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition-colors"
-          >
-            <Plus size={15} />
-            Pendaftaran Baru
           </button>
         </div>
       </div>

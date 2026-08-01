@@ -1,9 +1,10 @@
-import React from "react";
-import { X, User } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { X, User, Search } from "lucide-react";
 import type { FormModalState } from "../types/registrationPage.types.js";
 import type { Poli } from "@/types/poli.types.js";
 import type { DokterItem, JenisPembayaran } from "@/types/registrasi.types.js";
 import type { Pasien } from "@/types/pasien.types.js";
+import { JENIS_PEMBAYARAN_OPTIONS } from "@/constants/registrasi.js";
 
 interface RegistrationFormModalProps {
   formModal: FormModalState;
@@ -26,6 +27,19 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
   onFieldChange,
   onSubmit,
 }) => {
+  const [pasienSearch, setPasienSearch] = useState<string>("");
+
+  const filteredPasienList = useMemo(() => {
+    if (!pasienSearch.trim()) return pasienList;
+    const query = pasienSearch.toLowerCase().trim();
+    return pasienList.filter(
+      (p) =>
+        p.nama?.toLowerCase().includes(query) ||
+        p.nik?.toLowerCase().includes(query) ||
+        p.noRekamMedis?.toLowerCase().includes(query)
+    );
+  }, [pasienList, pasienSearch]);
+
   if (!formModal.isOpen) return null;
 
   const filteredFormDoctors = formModal.poliId
@@ -37,7 +51,7 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all">
         <div className="flex items-center justify-between border-b border-gray-100 pb-4">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Form Pendaftaran Pasien Baru</h2>
+            <h2 className="text-base font-bold text-gray-900">Form Pendaftaran Pasien</h2>
             <p className="text-xs text-gray-500">Pilih pasien, poli tujuan, dokter, dan penjamin pembayaran.</p>
           </div>
           <button
@@ -49,11 +63,25 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
         </div>
 
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
-          {/* Select Pasien */}
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-gray-700">
+          {/* Select Pasien dengan Input Cari */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-700">
               Pasien <span className="text-red-500">*</span>
             </label>
+
+            {/* Input Cari Pasien */}
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={pasienSearch}
+                onChange={(e) => setPasienSearch(e.target.value)}
+                placeholder="Cari pasien (Nama, NIK, atau RM)..."
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-1.5 pl-8 pr-3 text-xs text-gray-800 placeholder:text-gray-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+
+            {/* Dropdown Pasien */}
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <select
@@ -61,15 +89,19 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
                 onChange={(e) => onFieldChange("pasienId", e.target.value)}
                 className="w-full rounded-lg border border-gray-200 bg-gray-50/50 py-2 pl-9 pr-3 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
               >
-                <option value="">-- Pilih Pasien --</option>
-                {pasienList.map((p) => (
+                <option value="">
+                  -- Pilih Pasien ({filteredPasienList.length} Ditemukan) --
+                </option>
+                {filteredPasienList.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nama} (RM: {p.noRekamMedis} | NIK: {p.nik})
                   </option>
                 ))}
               </select>
             </div>
-            {formModal.errors.pasienId && <p className="mt-1 text-[11px] text-red-600">{formModal.errors.pasienId}</p>}
+            {formModal.errors.pasienId && (
+              <p className="text-[11px] text-red-600">{formModal.errors.pasienId}</p>
+            )}
           </div>
 
           {/* Grid 2 Column: Poli & Dokter */}
@@ -126,9 +158,11 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
               onChange={(e) => onFieldChange("jenisPembayaran", e.target.value as JenisPembayaran)}
               className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             >
-              <option value="UMUM">UMUM / Mandiri</option>
-              <option value="BPJS">BPJS Kesehatan</option>
-              <option value="ASURANSI">Asuransi Swasta</option>
+              {JENIS_PEMBAYARAN_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
 

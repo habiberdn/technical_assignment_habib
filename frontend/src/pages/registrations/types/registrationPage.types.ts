@@ -6,13 +6,9 @@ import type {
 } from "@/types/registrasi.types.js";
 import type { Poli } from "@/types/poli.types.js";
 import type { Pasien } from "@/types/pasien.types.js";
+import { STATUS_STYLES } from "@/constants/registrasi.js";
 
-export const STATUS_STYLES: Record<StatusKunjungan, { label: string; className: string }> = {
-  MENUNGGU: { label: "Menunggu", className: "bg-amber-100 text-amber-800 border-amber-200" },
-  CHECK_IN: { label: "Check In", className: "bg-blue-100 text-blue-800 border-blue-200" },
-  PEMERIKSAAN: { label: "Pemeriksaan", className: "bg-emerald-100 text-emerald-800 font-semibold border-emerald-200" },
-  SELESAI: { label: "Selesai", className: "bg-gray-100 text-gray-700 border-gray-200" },
-};
+export { STATUS_STYLES };
 
 export interface FiltersState {
   search: string;

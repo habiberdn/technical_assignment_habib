@@ -10,7 +10,7 @@ interface RegistrationTableProps {
   page: number;
   totalPages: number;
   onCallQueue: (reg: RegistrasiItem) => void;
-  onUpdateStatus: (id: string, status: StatusKunjungan) => void;
+  onUpdateStatus: (reg: RegistrasiItem, status: StatusKunjungan) => void;
   onPageChange: (newPage: number) => void;
 }
 
@@ -97,7 +97,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                   {reg.status === "MENUNGGU" && (
                     <button
-                      onClick={() => onUpdateStatus(reg.id, "CHECK_IN")}
+                      onClick={() => onUpdateStatus(reg, "CHECK_IN")}
                       className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100"
                     >
                       Check In
@@ -106,7 +106,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                   {reg.status === "CHECK_IN" && (
                     <button
-                      onClick={() => onUpdateStatus(reg.id, "PEMERIKSAAN")}
+                      onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
                       className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
                     >
                       Periksa
@@ -115,7 +115,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                   {reg.status === "PEMERIKSAAN" && (
                     <button
-                      onClick={() => onUpdateStatus(reg.id, "SELESAI")}
+                      onClick={() => onUpdateStatus(reg, "SELESAI")}
                       className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200"
                     >
                       Selesai
@@ -205,7 +205,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                         {reg.status === "MENUNGGU" && (
                           <button
-                            onClick={() => onUpdateStatus(reg.id, "CHECK_IN")}
+                            onClick={() => onUpdateStatus(reg, "CHECK_IN")}
                             className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
                           >
                             Check In
@@ -214,7 +214,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                         {reg.status === "CHECK_IN" && (
                           <button
-                            onClick={() => onUpdateStatus(reg.id, "PEMERIKSAAN")}
+                            onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
                             className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
                           >
                             Periksa
@@ -223,7 +223,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
 
                         {reg.status === "PEMERIKSAAN" && (
                           <button
-                            onClick={() => onUpdateStatus(reg.id, "SELESAI")}
+                            onClick={() => onUpdateStatus(reg, "SELESAI")}
                             className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors"
                           >
                             Selesai

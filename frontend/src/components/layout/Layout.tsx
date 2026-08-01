@@ -1,15 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext.js";
+import { NAV_ITEMS, getRoleBadgeColor } from "@/constants/navigation.js";
 import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  CalendarCheck2,
-  Stethoscope,
   LogOut,
   Activity,
-  UserCheck,
   Plus,
   Settings,
   ChevronDown,
@@ -47,61 +42,9 @@ export const Layout: React.FC = () => {
     navigate("/login");
   };
 
-  const navItems = [
-    {
-      label: "Dashboard",
-      path: "/",
-      icon: LayoutDashboard,
-      roles: ["ADMIN", "DOKTER", "PETUGAS_PENDAFTARAN"],
-    },
-    {
-      label: "Master Pasien",
-      path: "/pasien",
-      icon: Users,
-      roles: ["ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"],
-    },
-    {
-      label: "Master Poli",
-      path: "/poli",
-      icon: Building2,
-      roles: ["ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"],
-    },
-    {
-      label: "Pendaftaran & Antrean",
-      path: "/antrean",
-      icon: CalendarCheck2,
-      roles: ["ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"],
-    },
-    {
-      label: "Pemeriksaan SOAP",
-      path: "/pemeriksaan",
-      icon: Stethoscope,
-      roles: ["ADMIN", "DOKTER", "PETUGAS_PENDAFTARAN"],
-    },
-    {
-      label: "Kelola Staf",
-      path: "/staf",
-      icon: UserCheck,
-      roles: ["ADMIN"],
-    },
-  ];
-
-  const filteredNavItems = navItems.filter((item) =>
+  const filteredNavItems = NAV_ITEMS.filter((item) =>
     user ? item.roles.includes(user.role) : false,
   );
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case "ADMIN":
-        return "bg-rose-50 text-rose-700 border-rose-200";
-      case "DOKTER":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "PETUGAS_PENDAFTARAN":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
@@ -184,7 +127,7 @@ export const Layout: React.FC = () => {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
           >
             <Plus size={16} />
-            Pendaftaran Baru
+            Pendaftaran Pasien
           </button>
         </div>
       </aside>

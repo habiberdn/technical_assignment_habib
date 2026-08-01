@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { PaginationMeta } from "@/types/pasien.types.js";
+import { PAGE_SIZE_OPTIONS } from "@/constants/pasien.js";
 
 interface PasienPaginationProps {
   meta: PaginationMeta;
@@ -53,10 +54,11 @@ export const PasienPagination: React.FC<PasienPaginationProps> = ({
               onChange={(e) => onLimitChange(Number(e.target.value))}
               className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold text-gray-700 shadow-xs focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
             >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </select>
           </div>
         )}

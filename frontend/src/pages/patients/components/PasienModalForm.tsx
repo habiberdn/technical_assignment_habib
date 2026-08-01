@@ -2,6 +2,11 @@ import React, { useState, useEffect, type FormEvent } from "react";
 import { X, Save, User, CreditCard, Phone, MapPin, Calendar } from "lucide-react";
 import { createPasienSchema } from "@/dtos/pasien.dto.js";
 import type { Pasien, JenisKelamin } from "@/types/pasien.types.js";
+import {
+  INITIAL_PASIEN_FORM_DATA,
+  JENIS_KELAMIN_OPTIONS,
+  type PasienFormData,
+} from "@/constants/pasien.js";
 
 interface PasienModalFormProps {
   isOpen: boolean;
@@ -12,24 +17,6 @@ interface PasienModalFormProps {
   onSubmit: (data: any) => void;
 }
 
-interface PasienFormData {
-  nik: string;
-  nama: string;
-  jenisKelamin: JenisKelamin;
-  tanggalLahir: string;
-  noTelepon: string;
-  alamat: string;
-}
-
-const initialFormData: PasienFormData = {
-  nik: "",
-  nama: "",
-  jenisKelamin: "LAKI_LAKI",
-  tanggalLahir: "",
-  noTelepon: "",
-  alamat: "",
-};
-
 export const PasienModalForm: React.FC<PasienModalFormProps> = ({
   isOpen,
   mode,
@@ -38,7 +25,7 @@ export const PasienModalForm: React.FC<PasienModalFormProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [formData, setFormData] = useState<PasienFormData>(initialFormData);
+  const [formData, setFormData] = useState<PasienFormData>(INITIAL_PASIEN_FORM_DATA);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -57,7 +44,7 @@ export const PasienModalForm: React.FC<PasienModalFormProps> = ({
             alamat: initialData.alamat || "",
           });
         } else {
-          setFormData(initialFormData);
+          setFormData(INITIAL_PASIEN_FORM_DATA);
         }
       }, 0);
       return () => clearTimeout(timer);
@@ -181,8 +168,11 @@ export const PasienModalForm: React.FC<PasienModalFormProps> = ({
                 onChange={(e) => handleChange("jenisKelamin", e.target.value as JenisKelamin)}
                 className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
               >
-                <option value="LAKI_LAKI">Laki-laki</option>
-                <option value="PEREMPUAN">Perempuan</option>
+                {JENIS_KELAMIN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 
