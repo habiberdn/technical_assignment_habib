@@ -94,7 +94,7 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
                 <option value="">-- Pilih Poli --</option>
                 {poliList.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nama} ({p.kode})
+                    {p.nama}
                   </option>
                 ))}
               </select>

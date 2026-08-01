@@ -57,7 +57,7 @@ export const RegistrationFilterToolbar: React.FC<RegistrationFilterToolbarProps>
           <option value="all">Semua Poliklinik</option>
           {poliList.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.nama} ({p.kode})
+              {p.nama}
             </option>
           ))}
         </select>

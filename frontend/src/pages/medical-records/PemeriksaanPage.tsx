@@ -1,13 +1,16 @@
-import { useEffect, useState, useCallback } from "react";
-import { Stethoscope, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Stethoscope, AlertCircle, CheckCircle2, X, Filter, Users, Clock, CheckCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext.js";
 import { registrasiService } from "@/services/registrasiService.js";
 import { pemeriksaanService } from "@/services/pemeriksaanService.js";
-import type { RegistrasiItem } from "@/types/registrasi.types.js";
+import { poliService } from "@/services/poliService.js";
+import type { RegistrasiItem, DokterItem } from "@/types/registrasi.types.js";
+import type { Poli } from "@/types/poli.types.js";
 import type { CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
 
 import { PemeriksaanQueueSidebar } from "./components/PemeriksaanQueueSidebar.js";
 import { PemeriksaanSOAPForm } from "./components/PemeriksaanSOAPForm.js";
+import { PemeriksaanAdminView } from "./components/PemeriksaanAdminView.js";
 import { RiwayatMedisModal } from "./components/RiwayatMedisModal.js";
 
 export function PemeriksaanPage() {
@@ -15,6 +18,12 @@ export function PemeriksaanPage() {
   const [queues, setQueues] = useState<RegistrasiItem[]>([]);
   const [selectedQueue, setSelectedQueue] = useState<RegistrasiItem | null>(null);
   const [activeFilter, setActiveFilter] = useState<"SIAP" | "SELESAI" | "ALL">("SIAP");
+
+  // Admin Multi-Poli Monitoring Filter state
+  const [poliList, setPoliList] = useState<Poli[]>([]);
+  const [doctorList, setDoctorList] = useState<DokterItem[]>([]);
+  const [selectedPoli, setSelectedPoli] = useState<string>("all");
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
 
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -24,7 +33,26 @@ export function PemeriksaanPage() {
   const [historyPasienId, setHistoryPasienId] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
 
-  // Fetch today's queue for this doctor
+  // Fetch Reference Lists for Admin Filter
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      const fetchRefData = async () => {
+        try {
+          const [polis, doctors] = await Promise.all([
+            poliService.getAllPoli(),
+            registrasiService.getDoctors(),
+          ]);
+          setPoliList(polis);
+          setDoctorList(doctors);
+        } catch (err) {
+          console.error("[PemeriksaanPage Admin Ref Fetch error]", err);
+        }
+      };
+      fetchRefData();
+    }
+  }, [user?.role]);
+
+  // Fetch today's queue
   const fetchTodayQueues = useCallback(async () => {
     try {
       setLoading(true);
@@ -39,6 +67,9 @@ export function PemeriksaanPage() {
       const params: any = { tanggalKunjungan: todayStr };
       if (user?.role === "DOKTER" && user.id) {
         params.dokterId = user.id;
+      } else if (user?.role === "ADMIN") {
+        if (selectedPoli !== "all") params.poliId = selectedPoli;
+        if (selectedDoctor !== "all") params.dokterId = selectedDoctor;
       }
 
       const list = await registrasiService.getRegistrasiList(params);
@@ -58,7 +89,7 @@ export function PemeriksaanPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedQueue, user?.id, user?.role]);
+  }, [selectedQueue, user?.id, user?.role, selectedPoli, selectedDoctor]);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +107,9 @@ export function PemeriksaanPage() {
         const params: any = { tanggalKunjungan: todayStr };
         if (user?.role === "DOKTER" && user.id) {
           params.dokterId = user.id;
+        } else if (user?.role === "ADMIN") {
+          if (selectedPoli !== "all") params.poliId = selectedPoli;
+          if (selectedDoctor !== "all") params.dokterId = selectedDoctor;
         }
 
         const list = await registrasiService.getRegistrasiList(params);
@@ -102,7 +136,7 @@ export function PemeriksaanPage() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, selectedPoli, selectedDoctor]);
 
   const handleSelectQueue = (queue: RegistrasiItem) => {
     setSelectedQueue(queue);
@@ -118,7 +152,16 @@ export function PemeriksaanPage() {
     setHistoryPasienId(null);
   };
 
-  // Submit SOAP Form
+  // Live Statistics for Admin Header
+  const stats = useMemo(() => {
+    const total = queues.length;
+    const waiting = queues.filter((q) => q.status === "MENUNGGU" || q.status === "CHECK_IN").length;
+    const inProgress = queues.filter((q) => q.status === "PEMERIKSAAN").length;
+    const completed = queues.filter((q) => q.status === "SELESAI").length;
+    return { total, waiting, inProgress, completed };
+  }, [queues]);
+
+  // Submit SOAP Form (Doctor Only)
   const handleSubmitSOAP = async (payload: CreatePemeriksaanDTO) => {
     if (submitting) return;
     try {
@@ -132,26 +175,7 @@ export function PemeriksaanPage() {
       );
 
       // Refresh list & select next waiting patient
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      const todayStr = `${year}-${month}-${day}`;
-
-      const params: any = { tanggalKunjungan: todayStr };
-      if (user?.role === "DOKTER" && user.id) {
-        params.dokterId = user.id;
-      }
-
-      const updatedList = await registrasiService.getRegistrasiList(params);
-
-      setQueues(updatedList);
-
-      const nextPatient = updatedList.find(
-        (item) => item.status === "CHECK_IN" || item.status === "PEMERIKSAAN" || item.status === "MENUNGGU"
-      );
-
-      setSelectedQueue(nextPatient || null);
+      await fetchTodayQueues();
     } catch (err: any) {
       console.error("[Submit SOAP error]", err);
       const msg = err.response?.data?.message || "Tidak dapat menyimpan pemeriksaan SOAP. Silakan periksa kembali data isian.";
@@ -168,13 +192,95 @@ export function PemeriksaanPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900 sm:text-2xl flex items-center gap-2">
             <Stethoscope className="text-emerald-600" />
-            Ruang Periksa Dokter (SOAP)
+            {user?.role === "ADMIN" ? "Dashboard Monitoring Pemeriksaan (Admin)" : "Ruang Periksa Dokter (SOAP)"}
           </h1>
           <p className="text-xs text-gray-500 sm:text-sm">
-            Alur terpadu panggil pasien, periksa rekam medis (SOAP), dan catat resep obat secara realtime.
+            {user?.role === "ADMIN"
+              ? "Pantau status ruang periksa seluruh poliklinik & rekam medis pasien secara realtime."
+              : "Alur terpadu panggil pasien, periksa rekam medis (SOAP), dan catat resep obat secara realtime."}
           </p>
         </div>
+
+        {/* Admin Multi-Poli Selector */}
+        {user?.role === "ADMIN" && (
+          <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-2xs">
+            <Filter size={15} className="text-emerald-600 shrink-0" />
+            <select
+              value={selectedPoli}
+              onChange={(e) => {
+                setSelectedPoli(e.target.value);
+                setSelectedDoctor("all");
+              }}
+              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="all">Semua Poliklinik</option>
+              {poliList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedDoctor}
+              onChange={(e) => setSelectedDoctor(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+            >
+              <option value="all">Semua Dokter</option>
+              {doctorList.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.nama}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
+
+      {/* Admin Realtime Monitoring Stats */}
+      {user?.role === "ADMIN" && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 shrink-0">
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <Users size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-gray-400">Total Kunjungan</p>
+              <p className="text-base font-bold text-gray-900">{stats.total} <span className="text-xs font-normal text-gray-500">pasien</span></p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+              <Clock size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-gray-400">Menunggu / Siap</p>
+              <p className="text-base font-bold text-amber-700">{stats.waiting} <span className="text-xs font-normal text-gray-500">pasien</span></p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+              <Stethoscope size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-gray-400">Sedang Periksa</p>
+              <p className="text-base font-bold text-emerald-700">{stats.inProgress} <span className="text-xs font-normal text-gray-500">pasien</span></p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+              <CheckCircle size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-gray-400">Selesai Periksa</p>
+              <p className="text-base font-bold text-gray-800">{stats.completed} <span className="text-xs font-normal text-gray-500">pasien</span></p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Alert Notifications */}
       {error && (
@@ -210,7 +316,7 @@ export function PemeriksaanPage() {
       {/* Main 2-Column Integrated Layout */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 flex-1 min-h-0">
         {/* Left Column: Queue Sidebar List */}
-        <div className="lg:col-span-4 h-full min-h-[300px] lg:min-h-0">
+        <div className="lg:col-span-4 h-full min-h-75 lg:min-h-0">
           <PemeriksaanQueueSidebar
             queues={queues}
             selectedQueueId={selectedQueue?.id || null}
@@ -222,22 +328,31 @@ export function PemeriksaanPage() {
           />
         </div>
 
-        {/* Right Column: SOAP Examination Workspace */}
-        <div className="lg:col-span-8 h-full min-h-[500px] lg:min-h-0">
+        {/* Right Column: SOAP Examination Workspace (Form for Doctor, Executive Summary Card for Admin) */}
+        <div className="lg:col-span-8 h-full min-h-125 lg:min-h-0">
           {selectedQueue ? (
-            <PemeriksaanSOAPForm
-              key={selectedQueue.id}
-              queue={selectedQueue}
-              submitting={submitting}
-              onOpenHistory={handleOpenHistory}
-              onSubmit={handleSubmitSOAP}
-            />
+            user?.role === "ADMIN" ? (
+              <PemeriksaanAdminView
+                key={selectedQueue.id}
+                queue={selectedQueue}
+                onOpenHistory={handleOpenHistory}
+              />
+            ) : (
+              <PemeriksaanSOAPForm
+                key={selectedQueue.id}
+                queue={selectedQueue}
+                submitting={submitting}
+                isReadOnly={false}
+                onOpenHistory={handleOpenHistory}
+                onSubmit={handleSubmitSOAP}
+              />
+            )
           ) : (
             <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-xs">
               <Stethoscope size={36} className="text-gray-300 mb-3" />
               <h3 className="text-sm font-bold text-gray-800">Pilih Pasien Dari Antrean</h3>
               <p className="mt-1 text-xs text-gray-400 max-w-sm">
-                Silakan pilih salah satu pasien dari daftar antrean sebelah kiri untuk mulai mengisi Rekam Medis (SOAP) dan resep obat.
+                Silakan pilih salah satu pasien dari daftar antrean sebelah kiri untuk melihat rekam medis dan status pemeriksaan.
               </p>
             </div>
           )}

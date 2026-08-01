@@ -131,7 +131,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 font-mono text-xs font-bold text-emerald-800">
+                    <span className="inline-flex min-h-[1.75rem] min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg bg-emerald-100 px-2 py-0.5 font-mono text-xs font-bold text-emerald-800">
                       {item.nomorAntrean}
                     </span>
                     <div>
