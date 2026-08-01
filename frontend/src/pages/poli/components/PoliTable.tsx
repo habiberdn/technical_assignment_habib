@@ -1,5 +1,6 @@
 import React from "react";
 import { Edit2, Trash2, Building2, Stethoscope, CalendarCheck2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import type { Poli } from "@/types/poli.types.js";
 
 interface PoliTableProps {
@@ -15,6 +16,7 @@ export const PoliTable: React.FC<PoliTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const { user } = useAuth();
   if (loading) {
     return (
       <div className="rounded-xl border border-gray-100 bg-white p-8 text-center text-xs text-gray-400 shadow-xs">
@@ -60,22 +62,24 @@ export const PoliTable: React.FC<PoliTableProps> = ({
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-100">
-                <button
-                  onClick={() => onEdit(poli)}
-                  className="rounded-md p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                  title="Edit Poliklinik"
-                >
-                  <Edit2 size={15} />
-                </button>
-                <button
-                  onClick={() => onDelete(poli)}
-                  className="rounded-md p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                  title="Hapus Poliklinik"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
+              {user?.role === "ADMIN" && (
+                <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-100">
+                  <button
+                    onClick={() => onEdit(poli)}
+                    className="rounded-md p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                    title="Edit Poliklinik"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                  <button
+                    onClick={() => onDelete(poli)}
+                    className="rounded-md p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                    title="Hapus Poliklinik"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Badges Grid */}
@@ -138,22 +142,26 @@ export const PoliTable: React.FC<PoliTableProps> = ({
                     </div>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => onEdit(poli)}
-                        className="rounded-lg p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                        title="Edit Poliklinik"
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      <button
-                        onClick={() => onDelete(poli)}
-                        className="rounded-lg p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        title="Hapus Poliklinik"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
+                    {user?.role === "ADMIN" ? (
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => onEdit(poli)}
+                          className="rounded-lg p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                          title="Edit Poliklinik"
+                        >
+                          <Edit2 size={15} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(poli)}
+                          className="rounded-lg p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                          title="Hapus Poliklinik"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic font-mono">Read Only</span>
+                    )}
                   </td>
                 </tr>
               ))}

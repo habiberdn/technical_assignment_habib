@@ -1,4 +1,5 @@
 import { UserPlus, Search, RefreshCw, AlertCircle, CheckCircle2, X, FileSpreadsheet, Upload } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import { usePasien } from "@/hooks/usePasien.js";
 import PasienTable from "./components/PasienTable.js";
 import PasienPagination from "./components/PasienPagination.js";
@@ -8,6 +9,9 @@ import PasienImportModal from "./components/PasienImportModal.js";
 import PasienDetailModal from "./components/PasienDetailModal.js";
 
 export function PatientListPage() {
+  const { user } = useAuth();
+  const isManageable = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
+
   const {
     pasienList,
     meta,
@@ -78,13 +82,15 @@ export function PatientListPage() {
               Refresh
             </button>
 
-            <button
-              onClick={openImportModal}
-              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
-            >
-              <Upload size={14} className="text-emerald-600" />
-              Import
-            </button>
+            {isManageable && (
+              <button
+                onClick={openImportModal}
+                className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                <Upload size={14} className="text-emerald-600" />
+                Import
+              </button>
+            )}
 
             <button
               onClick={handleExportExcel}
@@ -95,13 +101,15 @@ export function PatientListPage() {
               {exporting ? "Mengeksport..." : "Eksport"}
             </button>
 
-            <button
-              onClick={openCreateModal}
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
-            >
-              <UserPlus size={15} />
-              Tambah Pasien
-            </button>
+            {isManageable && (
+              <button
+                onClick={openCreateModal}
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+              >
+                <UserPlus size={15} />
+                Tambah Pasien
+              </button>
+            )}
           </div>
         </div>
       </div>

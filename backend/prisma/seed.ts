@@ -34,7 +34,7 @@ async function main() {
   console.log(`User seeded: ${admin.username} [Role: ${admin.role}]`);
 
   // 3. Seed User Role: PETUGAS_PENDAFTARAN
-  const petugas = await prisma.user.upsert({
+  const petugas = await prisma.user.upsert({  
     where: { username: "petugas" },
     update: {},
     create: {

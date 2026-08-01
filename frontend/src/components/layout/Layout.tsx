@@ -116,20 +116,22 @@ export const Layout: React.FC = () => {
           })}
         </nav>
 
-        {/* Action Button New Registration */}
-        <div className="border-t border-gray-100 p-4">
-          <button
-            type="button"
-            onClick={() => {
-              setIsMobileSidebarOpen(false);
-              navigate("/antrean", { state: { openCreateModal: true, timestamp: Date.now() } });
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
-          >
-            <Plus size={16} />
-            Pendaftaran Pasien
-          </button>
-        </div>
+        {/* Action Button New Registration (Admin & Petugas Pendaftaran Only) */}
+        {(user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN") && (
+          <div className="border-t border-gray-100 p-4">
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileSidebarOpen(false);
+                navigate("/antrean", { state: { openCreateModal: true, timestamp: Date.now() } });
+              }}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
+            >
+              <Plus size={16} />
+              Pendaftaran Pasien
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Main Right Area */}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Edit2, Trash2, Phone, MapPin, Calendar, CreditCard, Eye } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import type { Pasien } from "@/types/pasien.types.js";
 
 interface PasienTableProps {
@@ -17,6 +18,8 @@ export const PasienTable: React.FC<PasienTableProps> = ({
   onDelete,
   onViewDetail,
 }) => {
+  const { user } = useAuth();
+  const isManageable = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
@@ -102,20 +105,24 @@ export const PasienTable: React.FC<PasienTableProps> = ({
                       <Eye size={15} />
                     </button>
                   )}
-                  <button
-                    onClick={() => onEdit(pasien)}
-                    className="rounded-md p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                    title="Edit Pasien"
-                  >
-                    <Edit2 size={15} />
-                  </button>
-                  <button
-                    onClick={() => onDelete(pasien)}
-                    className="rounded-md p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                    title="Hapus Pasien"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {isManageable && (
+                    <>
+                      <button
+                        onClick={() => onEdit(pasien)}
+                        className="rounded-md p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        title="Edit Pasien"
+                      >
+                        <Edit2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(pasien)}
+                        className="rounded-md p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                        title="Hapus Pasien"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -275,20 +282,24 @@ export const PasienTable: React.FC<PasienTableProps> = ({
                             <Eye size={15} />
                           </button>
                         )}
-                        <button
-                          onClick={() => onEdit(pasien)}
-                          className="rounded-lg p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                          title="Edit Pasien"
-                        >
-                          <Edit2 size={15} />
-                        </button>
-                        <button
-                          onClick={() => onDelete(pasien)}
-                          className="rounded-lg p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                          title="Hapus Pasien"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        {isManageable && (
+                          <>
+                            <button
+                              onClick={() => onEdit(pasien)}
+                              className="rounded-lg p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                              title="Edit Pasien"
+                            >
+                              <Edit2 size={15} />
+                            </button>
+                            <button
+                              onClick={() => onDelete(pasien)}
+                              className="rounded-lg p-1.5 text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                              title="Hapus Pasien"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

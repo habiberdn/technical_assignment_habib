@@ -1,10 +1,12 @@
 import { Plus, Search, RefreshCw, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import { usePoli } from "@/hooks/usePoli.js";
 import PoliTable from "./components/PoliTable.js";
 import PoliModalForm from "./components/PoliModalForm.js";
 import PoliDeleteModal from "./components/PoliDeleteModal.js";
 
 export function PoliListPage() {
+  const { user } = useAuth();
   const {
     poliList,
     loading,
@@ -62,13 +64,15 @@ export function PoliListPage() {
               Refresh
             </button>
 
-            <button
-              onClick={openCreateModal}
-              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
-            >
-              <Plus size={15} />
-              Tambah Poliklinik
-            </button>
+            {user?.role === "ADMIN" && (
+              <button
+                onClick={openCreateModal}
+                className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+              >
+                <Plus size={15} />
+                Tambah Poliklinik
+              </button>
+            )}
           </div>
         </div>
       </div>

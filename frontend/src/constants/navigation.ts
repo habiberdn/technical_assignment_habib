@@ -44,7 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Pemeriksaan SOAP",
     path: "/pemeriksaan",
     icon: Stethoscope,
-    roles: ["ADMIN", "DOKTER", "PETUGAS_PENDAFTARAN"],
+    roles: ["ADMIN", "DOKTER"],
   },
   {
     label: "Kelola Staf",

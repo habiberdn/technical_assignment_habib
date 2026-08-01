@@ -19,11 +19,20 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<AdminDashboard />} />
-          <Route path="/pasien" element={<PatientListPage />} />
-          <Route path="/poli" element={<PoliListPage />} />
-          <Route path="/antrean" element={<RegistrationPage />} />
-          <Route path="/pemeriksaan" element={<PemeriksaanPage />} />
-          <Route path="/staf" element={<div className="p-6">Kelola Staf (Dalam Pengembangan)</div>} />
+
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"]} />}>
+            <Route path="/pasien" element={<PatientListPage />} />
+            <Route path="/poli" element={<PoliListPage />} />
+            <Route path="/antrean" element={<RegistrationPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN", "DOKTER"]} />}>
+            <Route path="/pemeriksaan" element={<PemeriksaanPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+            <Route path="/staf" element={<div className="p-6 font-semibold text-gray-700">Kelola Staf (Dalam Pengembangan)</div>} />
+          </Route>
         </Route>
       </Route>
 

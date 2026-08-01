@@ -1,5 +1,6 @@
 import React from "react";
 import { Volume2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
 import { STATUS_STYLES } from "../types/registrationPage.types.js";
 
@@ -24,6 +25,8 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   onUpdateStatus,
   onPageChange,
 }) => {
+  const { user } = useAuth();
+  const isManageable = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
   return (
     <div className="space-y-4">
       {/* Mobile Card List View (< md) */}
@@ -95,31 +98,35 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                     Panggil
                   </button>
 
-                  {reg.status === "MENUNGGU" && (
-                    <button
-                      onClick={() => onUpdateStatus(reg, "CHECK_IN")}
-                      className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100"
-                    >
-                      Check In
-                    </button>
-                  )}
+                  {isManageable && (
+                    <>
+                      {reg.status === "MENUNGGU" && (
+                        <button
+                          onClick={() => onUpdateStatus(reg, "CHECK_IN")}
+                          className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100"
+                        >
+                          Check In
+                        </button>
+                      )}
 
-                  {reg.status === "CHECK_IN" && (
-                    <button
-                      onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
-                      className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                    >
-                      Periksa
-                    </button>
-                  )}
+                      {reg.status === "CHECK_IN" && (
+                        <button
+                          onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
+                          className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
+                        >
+                          Periksa
+                        </button>
+                      )}
 
-                  {reg.status === "PEMERIKSAAN" && (
-                    <button
-                      onClick={() => onUpdateStatus(reg, "SELESAI")}
-                      className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200"
-                    >
-                      Selesai
-                    </button>
+                      {reg.status === "PEMERIKSAAN" && (
+                        <button
+                          onClick={() => onUpdateStatus(reg, "SELESAI")}
+                          className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200"
+                        >
+                          Selesai
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -203,31 +210,35 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                           Panggil
                         </button>
 
-                        {reg.status === "MENUNGGU" && (
-                          <button
-                            onClick={() => onUpdateStatus(reg, "CHECK_IN")}
-                            className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                          >
-                            Check In
-                          </button>
-                        )}
+                        {isManageable && (
+                          <>
+                            {reg.status === "MENUNGGU" && (
+                              <button
+                                onClick={() => onUpdateStatus(reg, "CHECK_IN")}
+                                className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
+                              >
+                                Check In
+                              </button>
+                            )}
 
-                        {reg.status === "CHECK_IN" && (
-                          <button
-                            onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
-                            className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
-                          >
-                            Periksa
-                          </button>
-                        )}
+                            {reg.status === "CHECK_IN" && (
+                              <button
+                                onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
+                                className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
+                              >
+                                Periksa
+                              </button>
+                            )}
 
-                        {reg.status === "PEMERIKSAAN" && (
-                          <button
-                            onClick={() => onUpdateStatus(reg, "SELESAI")}
-                            className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors"
-                          >
-                            Selesai
-                          </button>
+                            {reg.status === "PEMERIKSAAN" && (
+                              <button
+                                onClick={() => onUpdateStatus(reg, "SELESAI")}
+                                className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors"
+                              >
+                                Selesai
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
