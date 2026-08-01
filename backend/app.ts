@@ -9,6 +9,7 @@ import pasienRouter from "./routes/pasien.route.js";
 import registrasiRouter from "./routes/registrasi.route.js";
 import pemeriksaanRouter from "./routes/pemeriksaan.route.js";
 import dashboardRouter from "./routes/dashboard.route.js";
+import userRouter from "./routes/user.route.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
 import { xssSanitizer } from "./middlewares/xss.middleware.js";
@@ -46,6 +47,7 @@ app.use("/api/pasien", pasienRouter);
 app.use("/api/registrasi", registrasiRouter);
 app.use("/api/pemeriksaan", pemeriksaanRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/users", userRouter);
 
 // Global Error Handler
 app.use(errorHandler);

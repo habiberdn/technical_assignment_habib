@@ -8,6 +8,7 @@ import PatientListPage from "@/pages/patients/PatientListPage.js";
 import PoliListPage from "@/pages/poli/PoliListPage.js";
 import RegistrationPage from "@/pages/registrations/RegistrationPage.js";
 import PemeriksaanPage from "@/pages/medical-records/PemeriksaanPage.js";
+import StaffListPage from "@/pages/staff/StaffListPage.js";
 
 export function AppRoutes() {
   return (
@@ -29,7 +30,7 @@ export function AppRoutes() {
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route path="/staf" element={<div className="p-6 font-semibold text-gray-700">Kelola Staf (Dalam Pengembangan)</div>} />
+            <Route path="/staf" element={<StaffListPage />} />
           </Route>
         </Route>
       </Route>
