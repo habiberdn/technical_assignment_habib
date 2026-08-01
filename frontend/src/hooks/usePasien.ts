@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useState, useEffect, useCallback } from "react";
 import { pasienService } from "@/services/pasienService.js";
 import { exportPasienToExcel } from "@/utils/exportExcel.js";
@@ -150,9 +151,11 @@ export function usePasien() {
       }
       closeFormModal();
       await fetchPasienList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[usePasien submit error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menyimpan data pasien. Silakan periksa kembali isian data.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menyimpan data pasien. Silakan periksa kembali isian data.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -168,9 +171,11 @@ export function usePasien() {
       setSuccessMessage("Data pasien berhasil dihapus.");
       closeDeleteModal();
       await fetchPasienList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[usePasien delete error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menghapus data pasien. Silakan coba beberapa saat lagi.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menghapus data pasien. Silakan coba beberapa saat lagi.";
       setError(msg);
     } finally {
       setSubmitting(false);

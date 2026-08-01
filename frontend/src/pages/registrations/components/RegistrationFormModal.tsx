@@ -15,7 +15,7 @@ interface RegistrationFormModalProps {
   pasienList: Pasien[];
   submitting: boolean;
   onClose: () => void;
-  onFieldChange: (field: keyof FormModalState, value: any) => void;
+  onFieldChange: (field: keyof FormModalState, value: unknown) => void;
   onAddNewPasien?: (newPasien: Pasien) => void;
   onSubmit: (e: React.FormEvent) => void;
 }

@@ -61,12 +61,12 @@ export type RegistrationAction =
   | { type: "FETCH_REGISTRATIONS_START" }
   | { type: "FETCH_REGISTRATIONS_SUCCESS"; payload: RegistrasiItem[] }
   | { type: "FETCH_REGISTRATIONS_ERROR"; payload: string }
-  | { type: "SET_FILTER"; payload: { field: keyof FiltersState; value: any } }
+  | { type: "SET_FILTER"; payload: { field: keyof FiltersState; value: unknown } }
   | { type: "OPEN_CREATE_MODAL" }
   | { type: "CLOSE_CREATE_MODAL" }
   | { type: "OPEN_CONFIRM_MODAL"; payload: { reg: RegistrasiItem; targetStatus: StatusKunjungan } }
   | { type: "CLOSE_CONFIRM_MODAL" }
-  | { type: "UPDATE_FORM_FIELD"; payload: { field: keyof FormModalState; value: any } }
+  | { type: "UPDATE_FORM_FIELD"; payload: { field: keyof FormModalState; value: unknown } }
   | { type: "SET_FORM_ERRORS"; payload: Record<string, string> }
   | { type: "SUBMIT_START" }
   | { type: "CREATE_REGISTRATION_SUCCESS"; payload: { created: RegistrasiItem; message: string } }

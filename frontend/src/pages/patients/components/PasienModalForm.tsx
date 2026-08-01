@@ -1,6 +1,6 @@
 import React, { useState, useEffect, type FormEvent } from "react";
 import { X, Save, User, CreditCard, Phone, MapPin, Calendar } from "lucide-react";
-import { createPasienSchema } from "@/dtos/pasien.dto.js";
+import { createPasienSchema, type CreatePasienDTO, type UpdatePasienDTO } from "@/dtos/pasien.dto.js";
 import type { Pasien, JenisKelamin } from "@/types/pasien.types.js";
 import {
   INITIAL_PASIEN_FORM_DATA,
@@ -14,7 +14,7 @@ interface PasienModalFormProps {
   initialData: Pasien | null;
   submitting: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: CreatePasienDTO | UpdatePasienDTO) => void;
 }
 
 export const PasienModalForm: React.FC<PasienModalFormProps> = ({
@@ -88,7 +88,7 @@ export const PasienModalForm: React.FC<PasienModalFormProps> = ({
 
     onSubmit({
       ...payload,
-      tanggalLahir: formData.tanggalLahir, // Send YYYY-MM-DD string
+      tanggalLahir: new Date(formData.tanggalLahir),
     });
   };
 

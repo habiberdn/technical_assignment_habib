@@ -1,5 +1,6 @@
 import React, { useReducer, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { Printer, RefreshCw, AlertCircle, CheckCircle2, X, Volume2 } from "lucide-react";
 
 import { registrasiService } from "@/services/registrasiService.js";
@@ -65,7 +66,7 @@ export const RegistrationPage: React.FC = () => {
   const fetchRegistrations = useCallback(async () => {
     dispatch({ type: "FETCH_REGISTRATIONS_START" });
     try {
-      const params: any = {
+      const params: Record<string, string> = {
         tanggalKunjungan: filters.dateRange,
       };
 
@@ -76,7 +77,7 @@ export const RegistrationPage: React.FC = () => {
 
       const data = await registrasiService.getRegistrasiList(params);
       dispatch({ type: "FETCH_REGISTRATIONS_SUCCESS", payload: data });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Fetch registrations error]", err);
       dispatch({
         type: "FETCH_REGISTRATIONS_ERROR",
@@ -100,7 +101,7 @@ export const RegistrationPage: React.FC = () => {
 
   // Open Modal from Navigation State (Sidebar "+ Pendaftaran Baru" Button)
   useEffect(() => {
-    if (location.state && (location.state as any).openCreateModal) {
+    if (location.state && (location.state as { openCreateModal?: boolean }).openCreateModal) {
       const timer = setTimeout(() => {
         dispatch({ type: "OPEN_CREATE_MODAL" });
         window.history.replaceState({}, document.title);
@@ -110,11 +111,11 @@ export const RegistrationPage: React.FC = () => {
   }, [location.state]);
 
   // Handlers for Filters & Form Updates
-  const handleFilterChange = (field: keyof FiltersState, value: any) => {
+  const handleFilterChange = (field: keyof FiltersState, value: unknown) => {
     dispatch({ type: "SET_FILTER", payload: { field, value } });
   };
 
-  const handleFormFieldChange = (field: keyof FormModalState, value: any) => {
+  const handleFormFieldChange = (field: keyof FormModalState, value: unknown) => {
     dispatch({ type: "UPDATE_FORM_FIELD", payload: { field, value } });
   };
 
@@ -164,9 +165,11 @@ export const RegistrationPage: React.FC = () => {
       });
 
       await fetchRegistrations();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Create registrasi error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat mendaftarkan pasien. Silakan periksa kembali isian formulir.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat mendaftarkan pasien. Silakan periksa kembali isian formulir.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };
@@ -182,9 +185,11 @@ export const RegistrationPage: React.FC = () => {
         payload: `Nomor Antrean '${reg.nomorAntrean}' (${reg.pasien?.nama}) dipanggil!`,
       });
       await fetchRegistrations();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Call queue error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };
@@ -213,9 +218,11 @@ export const RegistrationPage: React.FC = () => {
         payload: `Antrean berikutnya '${called.nomorAntrean}' (${called.pasien?.nama}) berhasil dipanggil!`,
       });
       await fetchRegistrations();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Call next queue error]", err);
-      const msg = err.response?.data?.message || "Tidak ada antrean berstatus MENUNGGU pada poli ini.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak ada antrean berstatus MENUNGGU pada poli ini.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };
@@ -240,9 +247,11 @@ export const RegistrationPage: React.FC = () => {
         payload: `Status kunjungan untuk '${reg.pasien?.nama}' (${reg.nomorAntrean}) berhasil diperbarui ke '${targetStatus}'`,
       });
       await fetchRegistrations();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Update status error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat memperbarui status kunjungan pasien. Silakan coba kembali.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat memperbarui status kunjungan pasien. Silakan coba kembali.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };

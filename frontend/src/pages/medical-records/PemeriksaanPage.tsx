@@ -1,51 +1,62 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { Stethoscope, AlertCircle, CheckCircle2, X, Filter, Users, Clock, CheckCircle } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { isAxiosError } from "axios";
 import { useAuth } from "@/context/AuthContext.js";
+import api from "@/services/api.js";
 import { registrasiService } from "@/services/registrasiService.js";
 import { pemeriksaanService } from "@/services/pemeriksaanService.js";
-import { poliService } from "@/services/poliService.js";
+import type { CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
 import type { RegistrasiItem, DokterItem } from "@/types/registrasi.types.js";
 import type { Poli } from "@/types/poli.types.js";
-import type { CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
 
 import { PemeriksaanQueueSidebar } from "./components/PemeriksaanQueueSidebar.js";
 import { PemeriksaanSOAPForm } from "./components/PemeriksaanSOAPForm.js";
 import { PemeriksaanAdminView } from "./components/PemeriksaanAdminView.js";
 import { RiwayatMedisModal } from "./components/RiwayatMedisModal.js";
+import {
+  Stethoscope,
+  AlertCircle,
+  CheckCircle2,
+  Users,
+  Clock,
+  X,
+  Filter,
+} from "lucide-react";
 
-export function PemeriksaanPage() {
+export const PemeriksaanPage: React.FC = () => {
   const { user } = useAuth();
+
   const [queues, setQueues] = useState<RegistrasiItem[]>([]);
   const [selectedQueue, setSelectedQueue] = useState<RegistrasiItem | null>(null);
   const [activeFilter, setActiveFilter] = useState<"SIAP" | "SELESAI" | "ALL">("SIAP");
 
-  // Admin Multi-Poli Monitoring Filter state
-  const [poliList, setPoliList] = useState<Poli[]>([]);
-  const [doctorList, setDoctorList] = useState<DokterItem[]>([]);
+  // Filters for Admin view
   const [selectedPoli, setSelectedPoli] = useState<string>("all");
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
+  const [poliList, setPoliList] = useState<Poli[]>([]);
+  const [doctorList, setDoctorList] = useState<DokterItem[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Medical History Modal State
   const [historyPasienId, setHistoryPasienId] = useState<string | null>(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
 
-  // Fetch Reference Lists for Admin Filter
+  // Fetch reference lists for Admin filter
   useEffect(() => {
     if (user?.role === "ADMIN") {
       const fetchRefData = async () => {
         try {
-          const [polis, doctors] = await Promise.all([
-            poliService.getAllPoli(),
+          const [poliRes, docRes] = await Promise.all([
+            api.get<{ data: Poli[] }>("/poli"),
             registrasiService.getDoctors(),
           ]);
-          setPoliList(polis);
-          setDoctorList(doctors);
-        } catch (err) {
-          console.error("[PemeriksaanPage Admin Ref Fetch error]", err);
+          setPoliList(poliRes.data.data || []);
+          setDoctorList(docRes || []);
+        } catch {
+          // ignore silent
         }
       };
       fetchRefData();
@@ -64,7 +75,7 @@ export function PemeriksaanPage() {
       const day = String(now.getDate()).padStart(2, "0");
       const todayStr = `${year}-${month}-${day}`;
 
-      const params: any = { tanggalKunjungan: todayStr };
+      const params: Record<string, string> = { tanggalKunjungan: todayStr };
       if (user?.role === "DOKTER" && user.id) {
         params.dokterId = user.id;
       } else if (user?.role === "ADMIN") {
@@ -73,23 +84,25 @@ export function PemeriksaanPage() {
       }
 
       const list = await registrasiService.getRegistrasiList(params);
-
       setQueues(list);
 
-      // Auto-select first queue if none selected
-      if (list.length > 0 && !selectedQueue) {
+      setSelectedQueue((prev) => {
+        if (list.length === 0) return null;
+        if (prev && list.some((item) => item.id === prev.id)) {
+          return list.find((item) => item.id === prev.id) || prev;
+        }
         const firstSiap = list.find(
           (item) => item.status === "CHECK_IN" || item.status === "PEMERIKSAAN" || item.status === "MENUNGGU"
         );
-        setSelectedQueue(firstSiap || list[0]);
-      }
-    } catch (err: any) {
+        return firstSiap || list[0];
+      });
+    } catch (err: unknown) {
       console.error("[PemeriksaanPage fetch error]", err);
       setError("Tidak dapat memuat daftar antrean pemeriksaan hari ini. Silakan muat ulang halaman.");
     } finally {
       setLoading(false);
     }
-  }, [selectedQueue, user?.id, user?.role, selectedPoli, selectedDoctor]);
+  }, [user, selectedPoli, selectedDoctor]);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,7 +117,7 @@ export function PemeriksaanPage() {
         const day = String(now.getDate()).padStart(2, "0");
         const todayStr = `${year}-${month}-${day}`;
 
-        const params: any = { tanggalKunjungan: todayStr };
+        const params: Record<string, string> = { tanggalKunjungan: todayStr };
         if (user?.role === "DOKTER" && user.id) {
           params.dokterId = user.id;
         } else if (user?.role === "ADMIN") {
@@ -123,7 +136,7 @@ export function PemeriksaanPage() {
             setSelectedQueue(firstSiap || list[0]);
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("[PemeriksaanPage fetch error]", err);
         if (isMounted)
           setError("Tidak dapat memuat daftar antrean pemeriksaan hari ini. Silakan muat ulang halaman.");
@@ -176,9 +189,11 @@ export function PemeriksaanPage() {
 
       // Refresh list & select next waiting patient
       await fetchTodayQueues();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Submit SOAP error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menyimpan pemeriksaan SOAP. Silakan periksa kembali data isian.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menyimpan pemeriksaan SOAP. Silakan periksa kembali data isian.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -272,7 +287,7 @@ export function PemeriksaanPage() {
 
           <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-              <CheckCircle size={18} />
+              <CheckCircle2 size={18} />
             </div>
             <div>
               <p className="text-[10px] font-semibold uppercase text-gray-400">Selesai Periksa</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type FormEvent } from "react";
+import React, { useState, type FormEvent } from "react";
 import {
   Save,
   Plus,
@@ -53,19 +53,13 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   onOpenHistory,
   onSubmit,
 }) => {
-  const [formData, setFormData] = useState<FormSOAPData>(initialSOAPData);
+  const [formData, setFormData] = useState<FormSOAPData>(() => ({
+    ...initialSOAPData,
+    keluhanSubjective: queue.keluhanAwal || "",
+  }));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Populate initial subjective complaint from registrasi
-  useEffect(() => {
-    setFormData({
-      ...initialSOAPData,
-      keluhanSubjective: queue.keluhanAwal || "",
-    });
-    setErrors({});
-  }, [queue.id, queue.keluhanAwal]);
-
-  const handleChange = (field: keyof FormSOAPData, value: any) => {
+  const handleChange = (field: keyof FormSOAPData, value: unknown) => {
     if (isReadOnly) return;
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -175,7 +169,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
 
   const patientName = queue.pasien?.nama || "Pasien";
   const rawPoliName = queue.poli?.nama || "Poliklinik";
-  const poliName = rawPoliName.replace(/\s*[\(\[][^\]\)]*[\)\]]/g, "").trim();
+  const poliName = rawPoliName.replace(/\s*\(.*?\)/g, "").replace(/\s*\[.*?\]/g, "").trim();
 
   return (
     <div className="flex flex-col rounded-2xl border border-gray-100 bg-white shadow-xs overflow-hidden">

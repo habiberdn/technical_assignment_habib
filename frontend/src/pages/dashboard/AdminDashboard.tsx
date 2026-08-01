@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isAxiosError } from "axios";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import StatCard from "./components/StatCard.js";
 import QueueTable from "./components/QueueTable.js";
@@ -75,9 +76,11 @@ export function AdminDashboard() {
       setError(null);
       await registrasiService.panggilAntrean(entry.id);
       await fetchDashboardData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Dashboard Call Queue Error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
       setError(msg);
     }
   };

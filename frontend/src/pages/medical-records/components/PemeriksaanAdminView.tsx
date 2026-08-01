@@ -23,7 +23,7 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
   const patient = queue.pasien;
   const doctorName = queue.dokter?.nama || "Dokter Penanggung Jawab";
   const rawPoliName = queue.poli?.nama || "Poliklinik";
-  const poliName = rawPoliName.replace(/\s*[\(\[][^\]\)]*[\)\]]/g, "").trim();
+  const poliName = rawPoliName.replace(/\s*\(.*?\)/g, "").replace(/\s*\[.*?\]/g, "").trim();
 
   const handlePrint = () => {
     window.print();

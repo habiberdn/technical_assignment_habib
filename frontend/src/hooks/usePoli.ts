@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { poliService } from "@/services/poliService.js";
 import type { Poli } from "@/types/poli.types.js";
@@ -108,9 +109,11 @@ export function usePoli() {
       }
       closeFormModal();
       await fetchPoliList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[usePoli submit error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menyimpan data poliklinik. Silakan periksa isian data.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menyimpan data poliklinik. Silakan periksa isian data.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -127,9 +130,11 @@ export function usePoli() {
       setSuccessMessage("Data poliklinik berhasil dihapus.");
       closeDeleteModal();
       await fetchPoliList();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[usePoli delete error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menghapus data poliklinik. Silakan coba beberapa saat lagi.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menghapus data poliklinik. Silakan coba beberapa saat lagi.";
       setError(msg);
     } finally {
       setSubmitting(false);

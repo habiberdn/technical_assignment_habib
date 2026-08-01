@@ -1,4 +1,5 @@
 import React, { useState, type FormEvent } from "react";
+import { isAxiosError } from "axios";
 import { X, UserPlus, AlertCircle } from "lucide-react";
 import { pasienService } from "@/services/pasienService.js";
 import { createPasienSchema } from "@/dtos/pasien.dto.js";
@@ -23,7 +24,7 @@ export const QuickCreatePasienModal: React.FC<QuickCreatePasienModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -39,7 +40,7 @@ export const QuickCreatePasienModal: React.FC<QuickCreatePasienModalProps> = ({
       nik: formData.nik.trim(),
       nama: formData.nama.trim(),
       jenisKelamin: formData.jenisKelamin,
-      tanggalLahir: formData.tanggalLahir ? new Date(formData.tanggalLahir) : (undefined as any),
+      tanggalLahir: formData.tanggalLahir ? new Date(formData.tanggalLahir) : new Date(0),
       noTelepon: formData.noTelepon.trim(),
       alamat: formData.alamat.trim(),
     };
@@ -61,9 +62,11 @@ export const QuickCreatePasienModal: React.FC<QuickCreatePasienModalProps> = ({
       const created = await pasienService.createPasien(result.data);
       onSuccess(created);
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[QuickCreatePasien error]", err);
-      const msg = err.response?.data?.message || "Tidak dapat menambah pasien baru. Silakan periksa isian data.";
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Tidak dapat menambah pasien baru. Silakan periksa isian data.";
       setServerError(msg);
     } finally {
       setSubmitting(false);

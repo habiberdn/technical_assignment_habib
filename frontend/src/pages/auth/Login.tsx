@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock, Eye, EyeOff, LogIn, Plus } from "lucide-react";
@@ -41,8 +42,8 @@ export function LoginPage() {
       }
 
       navigate("/", { replace: true });
-    } catch (err: any) {
-      if (!err.response) {
+    } catch (err: unknown) {
+      if (!isAxiosError(err) || !err.response) {
         // Server Mati / Tidak Ada Internet
         setErrorMessage("Tidak dapat terhubung ke server. Pastikan koneksi internet Anda stabil dan coba lagi.");
       } else if (err.response.data?.errors && Array.isArray(err.response.data.errors)) {
@@ -53,10 +54,7 @@ export function LoginPage() {
         setErrorMessage(validationMsg);
       } else {
         // Error pesan umum dari Backend (misal: 401 Credential Invalid, 429 Rate Limit)
-        const msg =
-          err.response.data?.message ||
-          "Username atau password yang Anda masukkan tidak sesuai. Silakan periksa kembali.";
-        setErrorMessage(msg);
+        setErrorMessage(err.response.data?.message || "Username atau password yang Anda masukkan tidak sesuai. Silakan periksa kembali.");
       }
     } finally {
       setIsSubmitting(false);

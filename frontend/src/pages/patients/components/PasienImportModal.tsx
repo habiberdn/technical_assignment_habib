@@ -145,9 +145,6 @@ export const PasienImportModal: React.FC<PasienImportModalProps> = ({
     setErrorMsg(null);
     setImportProgress({ current: 0, total: validRows.length });
 
-    let successCount = 0;
-    let failCount = 0;
-
     for (let i = 0; i < validRows.length; i++) {
       const item = validRows[i];
       try {
@@ -160,10 +157,8 @@ export const PasienImportModal: React.FC<PasienImportModalProps> = ({
           alamat: item.alamat,
         };
         await pasienService.createPasien(payload);
-        successCount++;
       } catch (err) {
         console.error(`[Import item failed: ${item.nama}]`, err);
-        failCount++;
       }
       setImportProgress({ current: i + 1, total: validRows.length });
     }

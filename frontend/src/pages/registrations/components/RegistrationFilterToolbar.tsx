@@ -9,7 +9,7 @@ interface RegistrationFilterToolbarProps {
   filters: FiltersState;
   poliList: Poli[];
   doctorList: DokterItem[];
-  onFilterChange: (field: keyof FiltersState, value: any) => void;
+  onFilterChange: (field: keyof FiltersState, value: string) => void;
 }
 
 export const RegistrationFilterToolbar: React.FC<RegistrationFilterToolbarProps> = ({
