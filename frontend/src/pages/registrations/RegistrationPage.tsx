@@ -173,6 +173,7 @@ export const RegistrationPage: React.FC = () => {
 
   // Action: Call Queue Item
   const handleCallQueue = async (reg: RegistrasiItem) => {
+    if (ui.callingId || ui.submitting) return;
     try {
       dispatch({ type: "CALL_QUEUE_START", payload: reg.id });
       await registrasiService.panggilAntrean(reg.id);
@@ -190,6 +191,8 @@ export const RegistrationPage: React.FC = () => {
 
   // Action: Call Next Queue
   const handleCallNextQueue = async () => {
+    if (ui.submitting || ui.callingId) return;
+
     const poliId = filters.selectedPoli !== "all" ? filters.selectedPoli : poliList[0]?.id;
     if (!poliId) {
       dispatch({

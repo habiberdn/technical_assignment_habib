@@ -120,6 +120,7 @@ export function PemeriksaanPage() {
 
   // Submit SOAP Form
   const handleSubmitSOAP = async (payload: CreatePemeriksaanDTO) => {
+    if (submitting) return;
     try {
       setSubmitting(true);
       setError(null);

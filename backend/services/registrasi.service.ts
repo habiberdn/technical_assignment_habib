@@ -209,17 +209,30 @@ export class RegistrasiService {
       where.dokterId = dokterId;
     }
 
-    // Cari antrean berstatus MENUNGGU dengan nomor urut terkecil hari ini
-    const nextQueue = await prisma.registrasi.findFirst({
-      where,
-      orderBy: { nomorUrutAntrean: "asc" },
+    return prisma.$transaction(async (tx) => {
+      // Cari antrean berstatus MENUNGGU dengan nomor urut terkecil hari ini
+      const nextQueue = await tx.registrasi.findFirst({
+        where,
+        orderBy: { nomorUrutAntrean: "asc" },
+      });
+
+      if (!nextQueue) {
+        throw new HttpError(404, "Tidak ada antrean berstatus MENUNGGU untuk dipanggil");
+      }
+
+      return tx.registrasi.update({
+        where: { id: nextQueue.id },
+        data: {
+          statusAntrean: "DIPANGGIL",
+          dipanggilPadaJam: new Date(),
+        },
+        include: {
+          pasien: true,
+          poli: true,
+          dokter: { select: { id: true, nama: true } },
+        },
+      });
     });
-
-    if (!nextQueue) {
-      throw new HttpError(404, "Tidak ada antrean berstatus MENUNGGU untuk dipanggil");
-    }
-
-    return this.panggilAntrean(nextQueue.id);
   }
 
   async updateStatus(id: string, data: UpdateStatusRegistrasiDTO) {
