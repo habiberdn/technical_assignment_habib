@@ -23,6 +23,14 @@ export class PoliService {
   async getAllPoli() {
     return prisma.poli.findMany({
       orderBy: { kode: "asc" },
+      include: {
+        _count: {
+          select: {
+            dokter: true,
+            registrasi: true,
+          },
+        },
+      },
     });
   }
 

@@ -33,6 +33,12 @@ export interface FormModalState {
   errors: Record<string, string>;
 }
 
+export interface ConfirmModalState {
+  isOpen: boolean;
+  reg: RegistrasiItem | null;
+  targetStatus: StatusKunjungan | null;
+}
+
 export interface UIState {
   loading: boolean;
   isRefreshing: boolean;
@@ -50,6 +56,7 @@ export interface RegistrationState {
   filters: FiltersState;
   ui: UIState;
   formModal: FormModalState;
+  confirmModal: ConfirmModalState;
   ticketModalData: RegistrasiItem | null;
 }
 
@@ -61,6 +68,8 @@ export type RegistrationAction =
   | { type: "SET_FILTER"; payload: { field: keyof FiltersState; value: any } }
   | { type: "OPEN_CREATE_MODAL" }
   | { type: "CLOSE_CREATE_MODAL" }
+  | { type: "OPEN_CONFIRM_MODAL"; payload: { reg: RegistrasiItem; targetStatus: StatusKunjungan } }
+  | { type: "CLOSE_CONFIRM_MODAL" }
   | { type: "UPDATE_FORM_FIELD"; payload: { field: keyof FormModalState; value: any } }
   | { type: "SET_FORM_ERRORS"; payload: Record<string, string> }
   | { type: "SUBMIT_START" }

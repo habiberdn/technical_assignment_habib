@@ -3,6 +3,7 @@ import { RefreshCw, AlertCircle } from "lucide-react";
 import StatCard from "./components/StatCard.js";
 import QueueTable from "./components/QueueTable.js";
 import { getDashboardStats, getTodayQueueList } from "@/services/dashboardService.js";
+import { registrasiService } from "@/services/registrasiService.js";
 import type { DashboardStats, StatCardData, QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
 
 interface ApiQueueItem {
@@ -71,6 +72,18 @@ export function AdminDashboard() {
     } finally {
       setLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const handleCallQueue = async (entry: QueueEntry) => {
+    try {
+      setError(null);
+      await registrasiService.panggilAntrean(entry.id);
+      await fetchDashboardData();
+    } catch (err: any) {
+      console.error("[Dashboard Call Queue Error]", err);
+      const msg = err.response?.data?.message || "Gagal memanggil antrean.";
+      setError(msg);
     }
   };
 
@@ -216,7 +229,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Table Realtime Queue */}
-      <QueueTable entries={queues} loading={loading} />
+      <QueueTable entries={queues} loading={loading} onCallQueue={handleCallQueue} />
     </div>
   );
 }

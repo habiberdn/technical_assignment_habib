@@ -35,6 +35,11 @@ export const getInitialRegistrationState = (): RegistrationState => {
       keluhanAwal: "",
       errors: {},
     },
+    confirmModal: {
+      isOpen: false,
+      reg: null,
+      targetStatus: null,
+    },
     ticketModalData: null,
   };
 };
@@ -101,6 +106,22 @@ export function registrationReducer(
         formModal: { ...state.formModal, isOpen: false, errors: {} },
       };
 
+    case "OPEN_CONFIRM_MODAL":
+      return {
+        ...state,
+        confirmModal: {
+          isOpen: true,
+          reg: action.payload.reg,
+          targetStatus: action.payload.targetStatus,
+        },
+      };
+
+    case "CLOSE_CONFIRM_MODAL":
+      return {
+        ...state,
+        confirmModal: { isOpen: false, reg: null, targetStatus: null },
+      };
+
     case "UPDATE_FORM_FIELD":
       return {
         ...state,
@@ -134,12 +155,14 @@ export function registrationReducer(
     case "ACTION_SUCCESS":
       return {
         ...state,
+        confirmModal: { isOpen: false, reg: null, targetStatus: null },
         ui: { ...state.ui, submitting: false, callingId: null, successMessage: action.payload },
       };
 
     case "ACTION_ERROR":
       return {
         ...state,
+        confirmModal: { isOpen: false, reg: null, targetStatus: null },
         ui: { ...state.ui, submitting: false, callingId: null, error: action.payload },
       };
 

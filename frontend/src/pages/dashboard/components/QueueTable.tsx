@@ -1,5 +1,6 @@
 import React from "react";
-import { ClipboardList, MoreVertical } from "lucide-react";
+import { ClipboardList, Volume2, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
 
 const STATUS_STYLES: Record<QueueStatus, { label: string; className: string }> = {
@@ -21,10 +22,12 @@ export const StatusBadge: React.FC<{ status: QueueStatus }> = ({ status }) => {
 interface QueueTableProps {
   entries: QueueEntry[];
   loading?: boolean;
-  onActionClick?: (entry: QueueEntry) => void;
+  onCallQueue?: (entry: QueueEntry) => void;
 }
 
-export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false, onActionClick }) => {
+export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false, onCallQueue }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -34,6 +37,14 @@ export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false
           </span>
           <h2 className="text-sm font-semibold text-gray-900">Daftar Antrean Real-time Hari Ini</h2>
         </div>
+
+        <button
+          onClick={() => navigate("/antrean")}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+        >
+          <span>Buka Modul Antrean</span>
+          <ExternalLink size={13} />
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -77,18 +88,29 @@ export const QueueTable: React.FC<QueueTableProps> = ({ entries, loading = false
                     </div>
                   </td>
                   <td className="px-5 py-3 text-gray-600 font-medium">{entry.clinic}</td>
-                  <td className="px-5 py-3 text-gray-800 font-bold">{entry.queueNo}</td>
+                  <td className="px-5 py-3 text-gray-800 font-bold font-mono">{entry.queueNo}</td>
                   <td className="px-5 py-3">
                     <StatusBadge status={entry.status} />
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button
-                      onClick={() => onActionClick?.(entry)}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-                      aria-label="Aksi antrean"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => onCallQueue?.(entry)}
+                        disabled={entry.status === "SELESAI"}
+                        className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40 transition-colors"
+                        title="Panggil Antrean"
+                      >
+                        <Volume2 size={13} />
+                        Panggil
+                      </button>
+                      <button
+                        onClick={() => navigate("/antrean")}
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                        title="Buka Modul Antrean"
+                      >
+                        <ExternalLink size={13} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

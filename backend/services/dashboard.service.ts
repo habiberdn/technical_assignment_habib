@@ -29,14 +29,20 @@ export class DashboardService {
       // Total Antrean/Kunjungan Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: todayStart,
+          tanggalKunjungan: {
+            gte: todayStart,
+            lte: todayEnd,
+          },
         },
       }),
 
       // Total Pasien Menunggu Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: todayStart,
+          tanggalKunjungan: {
+            gte: todayStart,
+            lte: todayEnd,
+          },
           status: "MENUNGGU",
         },
       }),
@@ -44,7 +50,10 @@ export class DashboardService {
       // Total Pasien Selesai Dilayani Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: todayStart,
+          tanggalKunjungan: {
+            gte: todayStart,
+            lte: todayEnd,
+          },
           status: "SELESAI",
         },
       }),

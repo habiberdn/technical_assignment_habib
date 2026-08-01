@@ -6,6 +6,7 @@ import { registrasiService } from "@/services/registrasiService.js";
 import { poliService } from "@/services/poliService.js";
 import { pasienService } from "@/services/pasienService.js";
 import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
+import { createRegistrasiSchema } from "@/dtos/registrasi.dto.js";
 
 import { getInitialRegistrationState, registrationReducer } from "./state/registrationReducer.js";
 import type { FiltersState, FormModalState } from "./types/registrationPage.types.js";
@@ -14,12 +15,23 @@ import { RegistrationFilterToolbar } from "./components/RegistrationFilterToolba
 import { RegistrationTable } from "./components/RegistrationTable.js";
 import { RegistrationFormModal } from "./components/RegistrationFormModal.js";
 import { TicketModal } from "./components/TicketModal.js";
+import { ConfirmStatusModal } from "./components/ConfirmStatusModal.js";
 
 export const RegistrationPage: React.FC = () => {
   const [state, dispatch] = useReducer(registrationReducer, undefined, getInitialRegistrationState);
   const location = useLocation();
 
-  const { registrations, poliList, doctorList, pasienList, filters, ui, formModal, ticketModalData } = state;
+  const {
+    registrations,
+    poliList,
+    doctorList,
+    pasienList,
+    filters,
+    ui,
+    formModal,
+    confirmModal,
+    ticketModalData,
+  } = state;
   const limit = 10;
 
   // Fetch Initial Reference Data (Poli, Dokter, Pasien)
@@ -97,6 +109,7 @@ export const RegistrationPage: React.FC = () => {
     }
   }, [location.state]);
 
+  // Handlers for Filters & Form Updates
   const handleFilterChange = (field: keyof FiltersState, value: any) => {
     dispatch({ type: "SET_FILTER", payload: { field, value } });
   };
@@ -105,17 +118,28 @@ export const RegistrationPage: React.FC = () => {
     dispatch({ type: "UPDATE_FORM_FIELD", payload: { field, value } });
   };
 
+  // Submit Handler for Pendaftaran Baru with Zod Validation
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const errs: Record<string, string> = {};
-    if (!formModal.pasienId) errs.pasienId = "Pasien wajib dipilih";
-    if (!formModal.poliId) errs.poliId = "Poliklinik wajib dipilih";
-    if (!formModal.dokterId) errs.dokterId = "Dokter wajib dipilih";
-    if (!formModal.keluhanAwal.trim()) errs.keluhanAwal = "Keluhan awal wajib diisi";
+    const payload = {
+      pasienId: formModal.pasienId,
+      poliId: formModal.poliId,
+      dokterId: formModal.dokterId,
+      jenisPembayaran: formModal.jenisPembayaran,
+      keluhanAwal: formModal.keluhanAwal.trim(),
+      tanggalKunjungan: new Date(filters.dateRange),
+    };
 
-    if (Object.keys(errs).length > 0) {
-      dispatch({ type: "SET_FORM_ERRORS", payload: errs });
+    const validationResult = createRegistrasiSchema.safeParse(payload);
+    if (!validationResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      validationResult.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0].toString()] = issue.message;
+        }
+      });
+      dispatch({ type: "SET_FORM_ERRORS", payload: fieldErrors });
       return;
     }
 
@@ -193,14 +217,24 @@ export const RegistrationPage: React.FC = () => {
     }
   };
 
-  // Action: Update Visit Status
-  const handleUpdateStatus = async (id: string, newStatus: StatusKunjungan) => {
+  // Trigger Confirmation Modal for Status Updates
+  const handleRequestStatusChange = (reg: RegistrasiItem, targetStatus: StatusKunjungan) => {
+    // If targetStatus is SELESAI or CHECK_IN, trigger confirmation modal for safety
+    dispatch({ type: "OPEN_CONFIRM_MODAL", payload: { reg, targetStatus } });
+  };
+
+  // Execute Confirmed Status Change
+  const handleConfirmStatusChange = async () => {
+    if (!confirmModal.reg || !confirmModal.targetStatus) return;
+
+    const { reg, targetStatus } = confirmModal;
+
     try {
       dispatch({ type: "SUBMIT_START" });
-      await registrasiService.updateStatus(id, { status: newStatus });
+      await registrasiService.updateStatus(reg.id, { status: targetStatus });
       dispatch({
         type: "ACTION_SUCCESS",
-        payload: `Status kunjungan berhasil diperbarui ke '${newStatus}'`,
+        payload: `Status kunjungan untuk '${reg.pasien?.nama}' (${reg.nomorAntrean}) berhasil diperbarui ke '${targetStatus}'`,
       });
       await fetchRegistrations();
     } catch (err: any) {
@@ -210,6 +244,7 @@ export const RegistrationPage: React.FC = () => {
     }
   };
 
+  // Pagination Logic
   const totalPages = Math.ceil(registrations.length / limit) || 1;
   const paginatedRegistrations = registrations.slice(
     (filters.page - 1) * limit,
@@ -327,7 +362,7 @@ export const RegistrationPage: React.FC = () => {
           page={filters.page}
           totalPages={totalPages}
           onCallQueue={handleCallQueue}
-          onUpdateStatus={handleUpdateStatus}
+          onUpdateStatus={handleRequestStatusChange}
           onPageChange={(page) => handleFilterChange("page", page)}
         />
       )}
@@ -348,6 +383,16 @@ export const RegistrationPage: React.FC = () => {
       <TicketModal
         ticketModalData={ticketModalData}
         onClose={() => dispatch({ type: "CLOSE_TICKET_MODAL" })}
+      />
+
+      {/* Confirm Status Change Modal (Accidental Click Guard) */}
+      <ConfirmStatusModal
+        isOpen={confirmModal.isOpen}
+        reg={confirmModal.reg}
+        targetStatus={confirmModal.targetStatus}
+        submitting={ui.submitting}
+        onClose={() => dispatch({ type: "CLOSE_CONFIRM_MODAL" })}
+        onConfirm={handleConfirmStatusChange}
       />
     </div>
   );
