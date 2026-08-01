@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { Search, User, X, Check, ChevronDown } from "lucide-react";
+import { Search, User, X, Check, ChevronDown, UserPlus } from "lucide-react";
 import type { Pasien } from "@/types/pasien.types.js";
 
 interface SearchablePasienSelectProps {
   pasienList: Pasien[];
   selectedPasienId: string;
   onSelectPasien: (pasienId: string) => void;
+  onOpenQuickCreate?: () => void;
   error?: string;
 }
 
@@ -13,6 +14,7 @@ export const SearchablePasienSelect: React.FC<SearchablePasienSelectProps> = ({
   pasienList,
   selectedPasienId,
   onSelectPasien,
+  onOpenQuickCreate,
   error,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -115,14 +117,42 @@ export const SearchablePasienSelect: React.FC<SearchablePasienSelectProps> = ({
       )}
 
       {isOpen && !selectedPasien && (
-        <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 animate-in fade-in duration-100">
-          <div className="px-2 py-1.5 text-[10px] font-semibold text-gray-400 border-b border-gray-100 uppercase tracking-wider">
-            {filteredList.length} Pasien Ditemukan
+        <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 animate-in fade-in duration-100">
+          <div className="flex items-center justify-between px-2 py-1.5 border-b border-gray-100">
+            <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              {filteredList.length} Pasien Ditemukan
+            </span>
+            {onOpenQuickCreate && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenQuickCreate();
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+              >
+                <UserPlus size={13} />
+                + Pasien Baru
+              </button>
+            )}
           </div>
 
           {filteredList.length === 0 ? (
-            <div className="p-4 text-center text-xs text-gray-400">
-              Pasien tidak ditemukan dengan kata kunci &quot;{searchTerm}&quot;.
+            <div className="p-4 text-center text-xs text-gray-400 space-y-2">
+              <p>Pasien tidak ditemukan dengan kata kunci &quot;{searchTerm}&quot;.</p>
+              {onOpenQuickCreate && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenQuickCreate();
+                  }}
+                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors shadow-2xs"
+                >
+                  <UserPlus size={14} />
+                  Daftarkan Pasien Baru
+                </button>
+              )}
             </div>
           ) : (
             filteredList.map((p) => {

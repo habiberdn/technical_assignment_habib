@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 import type { FormModalState } from "../types/registrationPage.types.js";
 import type { Poli } from "@/types/poli.types.js";
@@ -6,6 +6,7 @@ import type { DokterItem, JenisPembayaran } from "@/types/registrasi.types.js";
 import type { Pasien } from "@/types/pasien.types.js";
 import { JENIS_PEMBAYARAN_OPTIONS } from "@/constants/registrasi.js";
 import { SearchablePasienSelect } from "./SearchablePasienSelect.js";
+import { QuickCreatePasienModal } from "./QuickCreatePasienModal.js";
 
 interface RegistrationFormModalProps {
   formModal: FormModalState;
@@ -15,6 +16,7 @@ interface RegistrationFormModalProps {
   submitting: boolean;
   onClose: () => void;
   onFieldChange: (field: keyof FormModalState, value: any) => void;
+  onAddNewPasien?: (newPasien: Pasien) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
 
@@ -26,43 +28,55 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
   submitting,
   onClose,
   onFieldChange,
+  onAddNewPasien,
   onSubmit,
 }) => {
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState<boolean>(false);
+
   if (!formModal.isOpen) return null;
 
   const filteredFormDoctors = formModal.poliId
     ? doctorList.filter((d) => !d.poliId || d.poliId === formModal.poliId)
     : doctorList;
 
+  const handleQuickCreateSuccess = (newPasien: Pasien) => {
+    if (onAddNewPasien) {
+      onAddNewPasien(newPasien);
+    }
+    onFieldChange("pasienId", newPasien.id);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-gray-900">Form Pendaftaran Pasien</h2>
-            <p className="text-xs text-gray-500">Pilih pasien, poli tujuan, dokter, dan penjamin pembayaran.</p>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Form Pendaftaran Pasien</h2>
+              <p className="text-xs text-gray-500">Pilih pasien, poli tujuan, dokter, dan penjamin pembayaran.</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            >
+              <X size={18} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        <form onSubmit={onSubmit} className="mt-4 space-y-4">
-          <div className="space-y-1.5 relative">
-            <label className="block text-xs font-semibold text-gray-700">
-              Pasien <span className="text-red-500">*</span>
-            </label>
+          <form onSubmit={onSubmit} className="mt-4 space-y-4">
+            <div className="space-y-1.5 relative">
+              <label className="block text-xs font-semibold text-gray-700">
+                Pasien <span className="text-red-500">*</span>
+              </label>
 
-            <SearchablePasienSelect
-              pasienList={pasienList}
-              selectedPasienId={formModal.pasienId}
-              onSelectPasien={(id) => onFieldChange("pasienId", id)}
-              error={formModal.errors.pasienId}
-            />
-          </div>
+              <SearchablePasienSelect
+                pasienList={pasienList}
+                selectedPasienId={formModal.pasienId}
+                onSelectPasien={(id) => onFieldChange("pasienId", id)}
+                onOpenQuickCreate={() => setIsQuickCreateOpen(true)}
+                error={formModal.errors.pasienId}
+              />
+            </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -157,5 +171,12 @@ export const RegistrationFormModal: React.FC<RegistrationFormModalProps> = ({
         </form>
       </div>
     </div>
+
+    <QuickCreatePasienModal
+      isOpen={isQuickCreateOpen}
+      onClose={() => setIsQuickCreateOpen(false)}
+      onSuccess={handleQuickCreateSuccess}
+    />
+  </>
   );
 };

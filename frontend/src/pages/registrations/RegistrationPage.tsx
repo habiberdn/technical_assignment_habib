@@ -367,6 +367,12 @@ export const RegistrationPage: React.FC = () => {
         submitting={ui.submitting}
         onClose={() => dispatch({ type: "CLOSE_CREATE_MODAL" })}
         onFieldChange={handleFormFieldChange}
+        onAddNewPasien={(newPasien) =>
+          dispatch({
+            type: "SET_REFERENCES",
+            payload: { poliList, doctorList, pasienList: [newPasien, ...pasienList] },
+          })
+        }
         onSubmit={handleCreateSubmit}
       />
 
