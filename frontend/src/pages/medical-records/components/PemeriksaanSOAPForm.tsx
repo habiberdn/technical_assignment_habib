@@ -1,0 +1,481 @@
+import React, { useState, useEffect, type FormEvent } from "react";
+import {
+  Save,
+  Plus,
+  Trash2,
+  History,
+  AlertCircle,
+  Stethoscope,
+  Pill,
+} from "lucide-react";
+import type { RegistrasiItem } from "@/types/registrasi.types.js";
+import { createPemeriksaanSchema, type CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
+
+interface PemeriksaanSOAPFormProps {
+  queue: RegistrasiItem;
+  submitting: boolean;
+  onOpenHistory: (pasienId: string) => void;
+  onSubmit: (payload: CreatePemeriksaanDTO) => void;
+}
+
+interface FormSOAPData {
+  keluhanSubjective: string;
+  tekananSistolik: string;
+  tekananDiastolik: string;
+  suhuTubuh: string;
+  beratBadan: string;
+  tinggiBadan: string;
+  diagnosa: string;
+  rencanaTerapi: string;
+  tindakan: { namaTindakan: string; catatan?: string }[];
+  resep: { namaObat: string; dosis: string; jumlah: string; aturanPakai: string }[];
+}
+
+const initialSOAPData: FormSOAPData = {
+  keluhanSubjective: "",
+  tekananSistolik: "120",
+  tekananDiastolik: "80",
+  suhuTubuh: "36.5",
+  beratBadan: "60",
+  tinggiBadan: "165",
+  diagnosa: "",
+  rencanaTerapi: "",
+  tindakan: [],
+  resep: [],
+};
+
+export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
+  queue,
+  submitting,
+  onOpenHistory,
+  onSubmit,
+}) => {
+  const [formData, setFormData] = useState<FormSOAPData>(initialSOAPData);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Populate initial subjective complaint from registrasi
+  useEffect(() => {
+    setFormData({
+      ...initialSOAPData,
+      keluhanSubjective: queue.keluhanAwal || "",
+    });
+    setErrors({});
+  }, [queue.id, queue.keluhanAwal]);
+
+  const handleChange = (field: keyof FormSOAPData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // Add / Remove Tindakan Medis
+  const handleAddTindakan = () => {
+    setFormData((prev) => ({
+      ...prev,
+      tindakan: [...prev.tindakan, { namaTindakan: "", catatan: "" }],
+    }));
+  };
+
+  const handleRemoveTindakan = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      tindakan: prev.tindakan.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const handleTindakanChange = (index: number, field: "namaTindakan" | "catatan", val: string) => {
+    setFormData((prev) => {
+      const updated = [...prev.tindakan];
+      updated[index] = { ...updated[index], [field]: val };
+      return { ...prev, tindakan: updated };
+    });
+  };
+
+  // Add / Remove Resep Obat
+  const handleAddResep = () => {
+    setFormData((prev) => ({
+      ...prev,
+      resep: [...prev.resep, { namaObat: "", dosis: "3x1", jumlah: "10", aturanPakai: "Sesudah makan" }],
+    }));
+  };
+
+  const handleRemoveResep = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      resep: prev.resep.filter((_, idx) => idx !== index),
+    }));
+  };
+
+  const handleResepChange = (
+    index: number,
+    field: "namaObat" | "dosis" | "jumlah" | "aturanPakai",
+    val: string
+  ) => {
+    setFormData((prev) => {
+      const updated = [...prev.resep];
+      updated[index] = { ...updated[index], [field]: val };
+      return { ...prev, resep: updated };
+    });
+  };
+
+  const handleSubmitForm = (e: FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    const payloadRaw = {
+      registrasiId: queue.id,
+      keluhanSubjective: formData.keluhanSubjective.trim(),
+      tekananSistolik: Number(formData.tekananSistolik),
+      tekananDiastolik: Number(formData.tekananDiastolik),
+      suhuTubuh: Number(formData.suhuTubuh),
+      beratBadan: Number(formData.beratBadan),
+      tinggiBadan: Number(formData.tinggiBadan),
+      diagnosa: formData.diagnosa.trim(),
+      rencanaTerapi: formData.rencanaTerapi.trim(),
+      tindakan: formData.tindakan
+        .filter((t) => t.namaTindakan.trim().length > 0)
+        .map((t) => ({ namaTindakan: t.namaTindakan.trim(), catatan: t.catatan?.trim() || undefined })),
+      resep: formData.resep
+        .filter((r) => r.namaObat.trim().length > 0)
+        .map((r) => ({
+          namaObat: r.namaObat.trim(),
+          dosis: r.dosis.trim(),
+          jumlah: Number(r.jumlah) || 1,
+          aturanPakai: r.aturanPakai.trim(),
+        })),
+    };
+
+    // Safe Parse Zod
+    const result = createPemeriksaanSchema.safeParse(payloadRaw);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          fieldErrors[issue.path[0].toString()] = issue.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    onSubmit(result.data);
+  };
+
+  const patientName = queue.pasien?.nama || "Pasien Noname";
+
+  return (
+    <div className="flex flex-col rounded-2xl border border-gray-100 bg-white shadow-xs overflow-hidden">
+      {/* Patient Header Banner */}
+      <div className="border-b border-gray-100 bg-emerald-50/50 p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white font-bold text-sm shadow-xs">
+            {queue.nomorAntrean}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900">{patientName}</h2>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 font-mono">
+                RM: {queue.pasien?.noRekamMedis}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600">
+              NIK: <span className="font-mono">{queue.pasien?.nik}</span> • NIK/Penjamin:{" "}
+              <span className="font-semibold text-emerald-700">{queue.jenisPembayaran}</span> • Poli:{" "}
+              <span className="font-semibold text-gray-800">{queue.poli?.nama}</span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => queue.pasien?.id && onOpenHistory(queue.pasien.id)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 shadow-xs hover:bg-emerald-50 transition-colors shrink-0"
+        >
+          <History size={15} />
+          Lihat Riwayat Medis
+        </button>
+      </div>
+
+      {/* Main SOAP Form Body */}
+      <form onSubmit={handleSubmitForm} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        {/* 1. S - SUBJEKTIF */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-xs font-bold text-blue-700">
+              S
+            </span>
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+              Subjektif (Keluhan Utama &amp; Anamnesa) <span className="text-red-500">*</span>
+            </h3>
+          </div>
+          <textarea
+            rows={3}
+            value={formData.keluhanSubjective}
+            onChange={(e) => handleChange("keluhanSubjective", e.target.value)}
+            placeholder="Catat keluhan utama, riwayat penyakit sekarang, riwayat alergi, dsb..."
+            className={`w-full rounded-xl border p-3 text-xs text-gray-800 focus:outline-none focus:ring-2 ${
+              errors.keluhanSubjective
+                ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
+                : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
+            }`}
+          />
+          {errors.keluhanSubjective && (
+            <p className="text-[11px] text-red-600 flex items-center gap-1">
+              <AlertCircle size={13} /> {errors.keluhanSubjective}
+            </p>
+          )}
+        </div>
+
+        {/* 2. O - OBJEKTIF (Vital Signs) */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-100 text-xs font-bold text-emerald-700">
+              O
+            </span>
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+              Objektif (Tanda-tanda Vital / Vital Signs)
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-gray-700">
+                Sistolik (mmHg)
+              </label>
+              <input
+                type="number"
+                value={formData.tekananSistolik}
+                onChange={(e) => handleChange("tekananSistolik", e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-gray-700">
+                Diastolik (mmHg)
+              </label>
+              <input
+                type="number"
+                value={formData.tekananDiastolik}
+                onChange={(e) => handleChange("tekananDiastolik", e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-gray-700">
+                Suhu Tubuh (°C)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={formData.suhuTubuh}
+                onChange={(e) => handleChange("suhuTubuh", e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-gray-700">
+                Berat Badan (kg)
+              </label>
+              <input
+                type="number"
+                step="0.5"
+                value={formData.beratBadan}
+                onChange={(e) => handleChange("beratBadan", e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold text-gray-700">
+                Tinggi Badan (cm)
+              </label>
+              <input
+                type="number"
+                value={formData.tinggiBadan}
+                onChange={(e) => handleChange("tinggiBadan", e.target.value)}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 3. A - ASESMEN (Diagnosa) */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 text-xs font-bold text-purple-700">
+              A
+            </span>
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+              Asesmen / Diagnosa Medis <span className="text-red-500">*</span>
+            </h3>
+          </div>
+          <textarea
+            rows={2}
+            value={formData.diagnosa}
+            onChange={(e) => handleChange("diagnosa", e.target.value)}
+            placeholder="Contoh: Febris ec susp. ISPA, Hipertensi Grade 1..."
+            className={`w-full rounded-xl border p-3 text-xs text-gray-800 focus:outline-none focus:ring-2 ${
+              errors.diagnosa
+                ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
+                : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
+            }`}
+          />
+          {errors.diagnosa && (
+            <p className="text-[11px] text-red-600 flex items-center gap-1">
+              <AlertCircle size={13} /> {errors.diagnosa}
+            </p>
+          )}
+        </div>
+
+        {/* 4. P - PLAN (Rencana Terapi) */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-100 text-xs font-bold text-amber-700">
+              P
+            </span>
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+              Plan (Rencana Terapi &amp; Penatalaksanaan) <span className="text-red-500">*</span>
+            </h3>
+          </div>
+          <textarea
+            rows={2}
+            value={formData.rencanaTerapi}
+            onChange={(e) => handleChange("rencanaTerapi", e.target.value)}
+            placeholder="Contoh: Istirahat cukup, minum air hangat 2L/hari, edukasi tanda bahaya..."
+            className={`w-full rounded-xl border p-3 text-xs text-gray-800 focus:outline-none focus:ring-2 ${
+              errors.rencanaTerapi
+                ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
+                : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
+            }`}
+          />
+          {errors.rencanaTerapi && (
+            <p className="text-[11px] text-red-600 flex items-center gap-1">
+              <AlertCircle size={13} /> {errors.rencanaTerapi}
+            </p>
+          )}
+        </div>
+
+        {/* 5. TINDAKAN MEDIS & RESEP OBAT */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-2">
+          {/* Tindakan Medis */}
+          <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                <Stethoscope size={15} className="text-emerald-600" />
+                Tindakan Medis (Opsional)
+              </div>
+              <button
+                type="button"
+                onClick={handleAddTindakan}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline"
+              >
+                <Plus size={13} /> Tambah Tindakan
+              </button>
+            </div>
+
+            {formData.tindakan.length === 0 ? (
+              <p className="text-xs text-gray-400 italic py-2 text-center">
+                Belum ada tindakan medis ditambahkan.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {formData.tindakan.map((t, idx) => (
+                  <div key={idx} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 text-xs">
+                    <input
+                      type="text"
+                      value={t.namaTindakan}
+                      onChange={(e) => handleTindakanChange(idx, "namaTindakan", e.target.value)}
+                      placeholder="Nama tindakan (contoh: Nebulisasi)"
+                      className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTindakan(idx)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Resep Obat */}
+          <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+                <Pill size={15} className="text-emerald-600" />
+                Resep Obat (Opsional)
+              </div>
+              <button
+                type="button"
+                onClick={handleAddResep}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline"
+              >
+                <Plus size={13} /> Tambah Obat
+              </button>
+            </div>
+
+            {formData.resep.length === 0 ? (
+              <p className="text-xs text-gray-400 italic py-2 text-center">
+                Belum ada resep obat ditambahkan.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {formData.resep.map((r, idx) => (
+                  <div key={idx} className="grid grid-cols-12 gap-1.5 rounded-lg border border-gray-200 bg-white p-2 text-xs">
+                    <input
+                      type="text"
+                      value={r.namaObat}
+                      onChange={(e) => handleResepChange(idx, "namaObat", e.target.value)}
+                      placeholder="Nama obat (Paracetamol)"
+                      className="col-span-5 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={r.dosis}
+                      onChange={(e) => handleResepChange(idx, "dosis", e.target.value)}
+                      placeholder="Dosis (3x1)"
+                      className="col-span-3 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
+                    />
+                    <input
+                      type="number"
+                      value={r.jumlah}
+                      onChange={(e) => handleResepChange(idx, "jumlah", e.target.value)}
+                      placeholder="Jml"
+                      className="col-span-3 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveResep(idx)}
+                      className="col-span-1 text-red-500 hover:text-red-700 flex items-center justify-center"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Submit Footer */}
+        <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-50 transition-all cursor-pointer"
+          >
+            <Save size={16} />
+            {submitting ? "Menyimpan SOAP..." : "Simpan & Selesaikan Pemeriksaan"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
