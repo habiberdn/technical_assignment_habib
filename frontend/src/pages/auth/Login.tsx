@@ -44,7 +44,7 @@ export function LoginPage() {
     } catch (err: any) {
       if (!err.response) {
         // Server Mati / Tidak Ada Internet
-        setErrorMessage("Gagal terhubung ke server. Periksa koneksi jaringan Anda.");
+        setErrorMessage("Tidak dapat terhubung ke server. Pastikan koneksi internet Anda stabil dan coba lagi.");
       } else if (err.response.data?.errors && Array.isArray(err.response.data.errors)) {
         // Validation Error dari Backend (Zod)
         const validationMsg = err.response.data.errors
@@ -55,7 +55,7 @@ export function LoginPage() {
         // Error pesan umum dari Backend (misal: 401 Credential Invalid, 429 Rate Limit)
         const msg =
           err.response.data?.message ||
-          "Gagal masuk. Periksa kembali username dan password Anda.";
+          "Username atau password yang Anda masukkan tidak sesuai. Silakan periksa kembali.";
         setErrorMessage(msg);
       }
     } finally {

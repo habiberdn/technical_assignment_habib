@@ -63,7 +63,7 @@ export function AdminDashboard() {
       setQueues(formattedQueues);
     } catch (err) {
       console.error("[Dashboard Fetch Error]", err);
-      setError("Gagal memuat data dashboard. Periksa koneksi ke server.");
+      setError("Tidak dapat memuat data dashboard. Sesi login Anda mungkin telah berakhir atau jaringan terputus. Silakan muat ulang halaman.");
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -77,7 +77,7 @@ export function AdminDashboard() {
       await fetchDashboardData();
     } catch (err: any) {
       console.error("[Dashboard Call Queue Error]", err);
-      const msg = err.response?.data?.message || "Gagal memanggil antrean.";
+      const msg = err.response?.data?.message || "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
       setError(msg);
     }
   };
@@ -121,7 +121,7 @@ export function AdminDashboard() {
         }
       } catch (err) {
         console.error("[Dashboard Fetch Error]", err);
-        if (isMounted) setError("Gagal memuat data dashboard. Periksa koneksi ke server.");
+        if (isMounted) setError("Tidak dapat memuat data dashboard. Sesi login Anda mungkin telah berakhir atau jaringan terputus. Silakan muat ulang halaman.");
       } finally {
         if (isMounted) {
           setLoading(false);

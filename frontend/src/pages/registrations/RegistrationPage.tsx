@@ -80,7 +80,7 @@ export const RegistrationPage: React.FC = () => {
       console.error("[Fetch registrations error]", err);
       dispatch({
         type: "FETCH_REGISTRATIONS_ERROR",
-        payload: "Gagal mengambil daftar pendaftaran. Silakan periksa koneksi server.",
+        payload: "Tidak dapat memuat daftar pendaftaran & antrean. Sesi login Anda mungkin telah berakhir atau koneksi internet terganggu. Silakan muat ulang halaman.",
       });
     }
   }, [filters.dateRange, filters.search, filters.selectedPoli, filters.selectedDoctor, filters.selectedStatus]);
@@ -166,7 +166,7 @@ export const RegistrationPage: React.FC = () => {
       await fetchRegistrations();
     } catch (err: any) {
       console.error("[Create registrasi error]", err);
-      const msg = err.response?.data?.message || "Gagal membuat pendaftaran baru.";
+      const msg = err.response?.data?.message || "Tidak dapat mendaftarkan pasien. Silakan periksa kembali isian formulir.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };
@@ -183,7 +183,7 @@ export const RegistrationPage: React.FC = () => {
       await fetchRegistrations();
     } catch (err: any) {
       console.error("[Call queue error]", err);
-      const msg = err.response?.data?.message || "Gagal memanggil antrean.";
+      const msg = err.response?.data?.message || "Tidak dapat memanggil antrean saat ini. Silakan coba beberapa saat lagi.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };
@@ -239,7 +239,7 @@ export const RegistrationPage: React.FC = () => {
       await fetchRegistrations();
     } catch (err: any) {
       console.error("[Update status error]", err);
-      const msg = err.response?.data?.message || "Gagal memperbarui status kunjungan.";
+      const msg = err.response?.data?.message || "Tidak dapat memperbarui status kunjungan pasien. Silakan coba kembali.";
       dispatch({ type: "ACTION_ERROR", payload: msg });
     }
   };

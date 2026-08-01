@@ -41,7 +41,7 @@ export function usePasien() {
       setMeta(res.meta);
     } catch (err: unknown) {
       console.error("[usePasien fetch error]", err);
-      setError("Gagal mengambil daftar pasien. Silakan coba lagi.");
+      setError("Tidak dapat memuat data pasien. Sesi login Anda mungkin telah berakhir atau koneksi internet terganggu.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export function usePasien() {
         }
       } catch (err: unknown) {
         console.error("[usePasien fetch error]", err);
-        if (isMounted) setError("Gagal mengambil daftar pasien. Silakan coba lagi.");
+        if (isMounted) setError("Tidak dapat memuat data pasien. Sesi login Anda mungkin telah berakhir atau koneksi internet terganggu.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -152,7 +152,7 @@ export function usePasien() {
       await fetchPasienList();
     } catch (err: any) {
       console.error("[usePasien submit error]", err);
-      const msg = err.response?.data?.message || "Gagal menyimpan data pasien.";
+      const msg = err.response?.data?.message || "Tidak dapat menyimpan data pasien. Silakan periksa kembali isian data.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -170,7 +170,7 @@ export function usePasien() {
       await fetchPasienList();
     } catch (err: any) {
       console.error("[usePasien delete error]", err);
-      const msg = err.response?.data?.message || "Gagal menghapus data pasien.";
+      const msg = err.response?.data?.message || "Tidak dapat menghapus data pasien. Silakan coba beberapa saat lagi.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -191,7 +191,7 @@ export function usePasien() {
       setSuccessMessage(`Berhasil mengeksport ${res.data.length} data pasien ke Excel!`);
     } catch (err) {
       console.error("[usePasien export error]", err);
-      setError("Gagal mengeksport data ke Excel.");
+      setError("Tidak dapat mengunduh berkas Excel. Silakan coba kembali nanti.");
     } finally {
       setExporting(false);
     }

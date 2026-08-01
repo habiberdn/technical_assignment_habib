@@ -26,7 +26,7 @@ export function usePoli() {
       setPoliList(data);
     } catch (err: unknown) {
       console.error("[usePoli fetch error]", err);
-      setError("Gagal mengambil data poliklinik. Silakan coba lagi.");
+      setError("Tidak dapat memuat data poliklinik. Sesi login Anda mungkin telah berakhir atau koneksi internet terganggu.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export function usePoli() {
         }
       } catch (err: unknown) {
         console.error("[usePoli fetch error]", err);
-        if (isMounted) setError("Gagal mengambil data poliklinik. Silakan coba lagi.");
+        if (isMounted) setError("Tidak dapat memuat data poliklinik. Sesi login Anda mungkin telah berakhir atau koneksi internet terganggu.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -110,7 +110,7 @@ export function usePoli() {
       await fetchPoliList();
     } catch (err: any) {
       console.error("[usePoli submit error]", err);
-      const msg = err.response?.data?.message || "Gagal menyimpan data poliklinik.";
+      const msg = err.response?.data?.message || "Tidak dapat menyimpan data poliklinik. Silakan periksa isian data.";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -129,7 +129,7 @@ export function usePoli() {
       await fetchPoliList();
     } catch (err: any) {
       console.error("[usePoli delete error]", err);
-      const msg = err.response?.data?.message || "Gagal menghapus data poliklinik.";
+      const msg = err.response?.data?.message || "Tidak dapat menghapus data poliklinik. Silakan coba beberapa saat lagi.";
       setError(msg);
     } finally {
       setSubmitting(false);
