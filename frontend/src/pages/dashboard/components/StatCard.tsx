@@ -1,6 +1,6 @@
 import React from "react";
 import { Users, ClipboardList, CheckCircle2, Clock, CalendarDays } from "lucide-react";
-import type { StatCardData } from "../../../types/dashboard.types.js";
+import type { StatCardData } from "@/types/dashboard.types.js";
 
 const iconMap: Record<string, React.ReactNode> = {
   users: <Users size={18} />,

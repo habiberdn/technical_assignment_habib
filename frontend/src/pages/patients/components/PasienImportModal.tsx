@@ -1,7 +1,7 @@
 import React, { useState, useRef, type ChangeEvent } from "react";
 import { Upload, FileSpreadsheet, X, CheckCircle2, AlertTriangle, Download } from "lucide-react";
-import { pasienService } from "../../../services/pasienService.js";
-import type { CreatePasienDTO } from "../../../dtos/pasien.dto.js";
+import { pasienService } from "@/services/pasienService.js";
+import type { CreatePasienDTO } from "@/dtos/pasien.dto.js";
 
 interface PasienImportModalProps {
   isOpen: boolean;

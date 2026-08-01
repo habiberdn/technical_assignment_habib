@@ -1,5 +1,24 @@
 export type JenisKelamin = "LAKI_LAKI" | "PEREMPUAN";
 
+export interface RegistrasiItem {
+  id: string;
+  tanggalKunjungan: string;
+  jenisPembayaran: "UMUM" | "BPJS" | "ASURANSI";
+  keluhanAwal: string;
+  status: "MENUNGGU" | "CHECK_IN" | "PEMERIKSAAN" | "SELESAI";
+  nomorAntrean: string;
+  poli?: {
+    id: string;
+    kode: string;
+    nama: string;
+  };
+  dokter?: {
+    id: string;
+    nama: string;
+  };
+  createdAt?: string;
+}
+
 export interface Pasien {
   id: string;
   noRekamMedis: string;
@@ -11,6 +30,7 @@ export interface Pasien {
   alamat: string;
   createdAt?: string;
   updatedAt?: string;
+  registrasi?: RegistrasiItem[];
 }
 
 export interface PasienListParams {

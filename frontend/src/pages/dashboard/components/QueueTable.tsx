@@ -1,6 +1,6 @@
 import React from "react";
 import { ClipboardList, MoreVertical } from "lucide-react";
-import type { QueueEntry, QueueStatus } from "../../../types/dashboard.types.js";
+import type { QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
 
 const STATUS_STYLES: Record<QueueStatus, { label: string; className: string }> = {
   MENUNGGU: { label: "Menunggu", className: "bg-amber-100 text-amber-800" },

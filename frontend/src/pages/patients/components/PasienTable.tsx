@@ -1,12 +1,13 @@
 import React from "react";
-import { Edit2, Trash2, Phone, MapPin, Calendar, CreditCard } from "lucide-react";
-import type { Pasien } from "../../../types/pasien.types.js";
+import { Edit2, Trash2, Phone, MapPin, Calendar, CreditCard, Eye } from "lucide-react";
+import type { Pasien } from "@/types/pasien.types.js";
 
 interface PasienTableProps {
   pasienList: Pasien[];
   loading: boolean;
   onEdit: (pasien: Pasien) => void;
   onDelete: (pasien: Pasien) => void;
+  onViewDetail?: (pasien: Pasien) => void;
 }
 
 export const PasienTable: React.FC<PasienTableProps> = ({
@@ -14,6 +15,7 @@ export const PasienTable: React.FC<PasienTableProps> = ({
   loading,
   onEdit,
   onDelete,
+  onViewDetail,
 }) => {
   const formatDate = (dateStr: string) => {
     try {
@@ -72,7 +74,16 @@ export const PasienTable: React.FC<PasienTableProps> = ({
                 return (
                   <tr key={pasien.id} className="hover:bg-gray-50/70 transition-colors">
                     <td className="px-5 py-3.5 font-bold text-emerald-700 font-mono text-xs">
-                      {pasien.noRekamMedis}
+                      {onViewDetail ? (
+                        <button
+                          onClick={() => onViewDetail(pasien)}
+                          className="hover:underline focus:outline-none"
+                        >
+                          {pasien.noRekamMedis}
+                        </button>
+                      ) : (
+                        pasien.noRekamMedis
+                      )}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -80,7 +91,16 @@ export const PasienTable: React.FC<PasienTableProps> = ({
                           {initials}
                         </span>
                         <div>
-                          <p className="font-semibold text-gray-800">{pasien.nama}</p>
+                          {onViewDetail ? (
+                            <button
+                              onClick={() => onViewDetail(pasien)}
+                              className="font-semibold text-gray-800 hover:text-emerald-600 hover:underline text-left"
+                            >
+                              {pasien.nama}
+                            </button>
+                          ) : (
+                            <p className="font-semibold text-gray-800">{pasien.nama}</p>
+                          )}
                           <p className="flex items-center gap-1 text-[11px] text-gray-400">
                             <MapPin size={11} className="shrink-0" />
                             <span className="truncate max-w-[180px]">{pasien.alamat}</span>
@@ -119,6 +139,15 @@ export const PasienTable: React.FC<PasienTableProps> = ({
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {onViewDetail && (
+                          <button
+                            onClick={() => onViewDetail(pasien)}
+                            className="rounded-lg p-1.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                            title="Lihat Detail Pasien"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        )}
                         <button
                           onClick={() => onEdit(pasien)}
                           className="rounded-lg p-1.5 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"

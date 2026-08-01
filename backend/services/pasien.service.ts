@@ -87,6 +87,7 @@ export class PasienService {
     return {
       data,
       meta: {
+        total: totalData,
         totalData,
         page,
         limit,

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { pasienService } from "../services/pasienService.js";
-import { exportPasienToExcel } from "../utils/exportExcel.js";
-import type { Pasien, PaginationMeta } from "../types/pasien.types.js";
-import type { CreatePasienDTO, UpdatePasienDTO } from "../dtos/pasien.dto.js";
+import { pasienService } from "@/services/pasienService.js";
+import { exportPasienToExcel } from "@/utils/exportExcel.js";
+import type { Pasien, PaginationMeta } from "@/types/pasien.types.js";
+import type { CreatePasienDTO, UpdatePasienDTO } from "@/dtos/pasien.dto.js";
 
 export function usePasien() {
   const [pasienList, setPasienList] = useState<Pasien[]>([]);
@@ -20,12 +20,16 @@ export function usePasien() {
 
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const [limit, setLimitState] = useState<number>(10);
 
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [isImportOpen, setIsImportOpen] = useState<boolean>(false);
+  const [isDetailOpen, setIsDetailOpen] = useState<boolean>(false);
+
   const [selectedPasien, setSelectedPasien] = useState<Pasien | null>(null);
+  const [selectedPasienDetail, setSelectedPasienDetail] = useState<Pasien | null>(null);
+  const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
 
   const fetchPasienList = useCallback(async () => {
@@ -52,6 +56,11 @@ export function usePasien() {
     setPage(1);
   };
 
+  const setLimit = (newLimit: number) => {
+    setLimitState(newLimit);
+    setPage(1);
+  };
+
   const openCreateModal = () => {
     setSelectedPasien(null);
     setFormMode("create");
@@ -73,6 +82,21 @@ export function usePasien() {
     setIsImportOpen(true);
   };
 
+  const openDetailModal = async (pasien: Pasien) => {
+    setSelectedPasienDetail(pasien);
+    setIsDetailOpen(true);
+    setDetailLoading(true);
+    try {
+      const detailData = await pasienService.getPasienById(pasien.id);
+      setSelectedPasienDetail(detailData);
+    } catch (err) {
+      console.error("[usePasien detail fetch error]", err);
+      // Keep basic patient data if detailed fetch fails
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   const closeFormModal = () => {
     setIsFormOpen(false);
     setSelectedPasien(null);
@@ -85,6 +109,11 @@ export function usePasien() {
 
   const closeImportModal = () => {
     setIsImportOpen(false);
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailOpen(false);
+    setSelectedPasienDetail(null);
   };
 
   const handleFormSubmit = async (data: CreatePasienDTO | UpdatePasienDTO) => {
@@ -167,22 +196,29 @@ export function usePasien() {
     successMessage,
     search,
     page,
+    limit,
     isFormOpen,
     isDeleteOpen,
     isImportOpen,
+    isDetailOpen,
     selectedPasien,
+    selectedPasienDetail,
+    detailLoading,
     formMode,
 
     // Actions
     setPage,
+    setLimit,
     handleSearchChange,
     openCreateModal,
     openEditModal,
     openDeleteModal,
     openImportModal,
+    openDetailModal,
     closeFormModal,
     closeDeleteModal,
     closeImportModal,
+    closeDetailModal,
     handleFormSubmit,
     handleDeleteConfirm,
     handleExportExcel,

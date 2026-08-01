@@ -1,7 +1,7 @@
 import React, { useState, useEffect, type FormEvent } from "react";
 import { X, Save, User, CreditCard, Phone, MapPin, Calendar } from "lucide-react";
-import { createPasienSchema } from "../../../dtos/pasien.dto.js";
-import type { Pasien, JenisKelamin } from "../../../types/pasien.types.js";
+import { createPasienSchema } from "@/dtos/pasien.dto.js";
+import type { Pasien, JenisKelamin } from "@/types/pasien.types.js";
 
 interface PasienModalFormProps {
   isOpen: boolean;

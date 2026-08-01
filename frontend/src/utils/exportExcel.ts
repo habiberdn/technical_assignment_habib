@@ -1,4 +1,4 @@
-import type { Pasien } from "../types/pasien.types.js";
+import type { Pasien } from "@/types/pasien.types.js";
 
 /**
  * Utility untuk mengeksport data Pasien ke file Excel (.xls)

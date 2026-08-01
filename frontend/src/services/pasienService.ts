@@ -1,17 +1,18 @@
-import api from "./api.js";
-import type { Pasien, PasienListParams, PasienListResponse } from "../types/pasien.types.js";
-import type { CreatePasienDTO, UpdatePasienDTO } from "../dtos/pasien.dto.js";
+import api from "@/services/api.js";
+import type { Pasien, PasienListParams, PasienListResponse } from "@/types/pasien.types.js";
+import type { CreatePasienDTO, UpdatePasienDTO } from "@/dtos/pasien.dto.js";
 
 export const pasienService = {
   getPasienList: async (params?: PasienListParams): Promise<PasienListResponse> => {
     const response = await api.get("/pasien", { params });
+    const rawMeta = response.data?.meta || {};
     return {
       data: response.data?.data || [],
-      meta: response.data?.meta || {
-        total: 0,
-        page: params?.page || 1,
-        limit: params?.limit || 10,
-        totalPages: 1,
+      meta: {
+        total: rawMeta.total ?? rawMeta.totalData ?? 0,
+        page: rawMeta.page ?? params?.page ?? 1,
+        limit: rawMeta.limit ?? params?.limit ?? 10,
+        totalPages: rawMeta.totalPages ?? 1,
       },
     };
   },

@@ -5,6 +5,7 @@ import { Layout } from "@/components/layout/Layout.js";
 import LoginPage from "@/pages/auth/Login.js";
 import AdminDashboard from "@/pages/dashboard/AdminDashboard.js";
 import PatientListPage from "@/pages/patients/PatientListPage.js";
+import PoliListPage from "@/pages/poli/PoliListPage.js";
 
 export function AppRoutes() {
   return (
@@ -17,7 +18,7 @@ export function AppRoutes() {
         <Route element={<Layout />}>
           <Route path="/" element={<AdminDashboard />} />
           <Route path="/pasien" element={<PatientListPage />} />
-          <Route path="/poli" element={<div className="p-6">Master Poli (Dalam Pengembangan)</div>} />
+          <Route path="/poli" element={<PoliListPage />} />
           <Route path="/antrean" element={<div className="p-6">Modul Antrean (Dalam Pengembangan)</div>} />
           <Route path="/pemeriksaan" element={<div className="p-6">Pemeriksaan Dokter SOAP (Dalam Pengembangan)</div>} />
           <Route path="/staf" element={<div className="p-6">Kelola Staf (Dalam Pengembangan)</div>} />

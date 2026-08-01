@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Lock, Eye, EyeOff, LogIn, Plus } from "lucide-react";
-import { useAuth } from "../../context/AuthContext.js";
-import api from "../../services/api.js";
+import { useAuth } from "@/context/AuthContext.js";
+import api from "@/services/api.js";
 
 export function LoginPage() {
   const navigate = useNavigate();
