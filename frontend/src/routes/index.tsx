@@ -12,10 +12,8 @@ import PemeriksaanPage from "@/pages/medical-records/PemeriksaanPage.js";
 export function AppRoutes() {
   return (
     <Routes>
-      {/* Public Route */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Authenticated Protected Shell */}
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<AdminDashboard />} />
@@ -36,7 +34,6 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      {/* Fallback Route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

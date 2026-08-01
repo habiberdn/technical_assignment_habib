@@ -152,8 +152,8 @@ export const PasienDetailModal: React.FC<PasienDetailModalProps> = ({
                 NIK: {pasien.nik}
               </p>
 
-              <div className="pt-1 flex flex-wrap justify-center sm:justify-start gap-2">
-                {waNumber && (
+              {waNumber && (
+                <div className="pt-1 flex flex-wrap justify-center sm:justify-start gap-2">
                   <a
                     href={`https://wa.me/${waNumber}`}
                     target="_blank"
@@ -163,17 +163,8 @@ export const PasienDetailModal: React.FC<PasienDetailModalProps> = ({
                     <MessageCircle size={13} />
                     WhatsApp
                   </a>
-                )}
-                {pasien.noTelepon && (
-                  <a
-                    href={`tel:${pasien.noTelepon}`}
-                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-2xs"
-                  >
-                    <Phone size={13} className="text-gray-500" />
-                    Hubungi ({pasien.noTelepon})
-                  </a>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
