@@ -40,9 +40,8 @@ export function PoliListPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Search Bar */}
-          <div className="relative min-w-60">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
+          <div className="relative w-full sm:w-auto sm:min-w-60">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -53,24 +52,24 @@ export function PoliListPage() {
             />
           </div>
 
-          {/* Refresh Button */}
-          <button
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw size={14} className={loading ? "animate-spin text-emerald-600" : ""} />
-            Refresh Data
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw size={14} className={loading ? "animate-spin text-emerald-600" : ""} />
+              Refresh
+            </button>
 
-          {/* Add Poli Button */}
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
-          >
-            <Plus size={15} />
-            Tambah Poliklinik
-          </button>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
+            >
+              <Plus size={15} />
+              Tambah Poliklinik
+            </button>
+          </div>
         </div>
       </div>
 

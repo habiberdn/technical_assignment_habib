@@ -13,6 +13,8 @@ import {
   Plus,
   Settings,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-react";
 
 export const Layout: React.FC = () => {
@@ -21,7 +23,13 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -38,6 +46,7 @@ export const Layout: React.FC = () => {
 
   const handleLogout = async () => {
     setIsUserMenuOpen(false);
+    setIsMobileSidebarOpen(false);
     await logout();
     navigate("/login");
   };
@@ -100,21 +109,43 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-gray-50 text-gray-900">
-      {/* Sidebar Navigasi */}
-      <aside className="flex w-64 flex-col border-r border-gray-100 bg-white">
-        {/* Brand Logo */}
-        <div className="flex h-16 items-center gap-3 border-b border-gray-100 px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20">
-            <Activity className="h-5 w-5 text-white" />
+      {/* Backdrop for Mobile Sidebar Drawer */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs lg:hidden animate-in fade-in duration-150"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Navigasi (Responsive: fixed drawer on mobile, static on desktop) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Brand Logo & Mobile Close Button */}
+        <div className="flex h-16 items-center justify-between border-b border-gray-100 px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20">
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold tracking-tight text-gray-900">
+                MediKlinik SIMRS
+              </h1>
+              <p className="text-[10px] font-medium text-emerald-600">
+                Sistem Klinik
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-extrabold tracking-tight text-gray-900">
-              MediKlinik SIMRS
-            </h1>
-            <p className="text-[10px] font-medium text-emerald-600">
-              Sistem Klinik
-            </p>
-          </div>
+          {/* Close button for mobile screen */}
+          <button
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 lg:hidden"
+            aria-label="Tutup menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Links Navigation */}
@@ -159,10 +190,27 @@ export const Layout: React.FC = () => {
 
       {/* Main Right Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Top Header (Clean Layout without Server Status & Admin Text) */}
-        <header className="flex h-16 items-center justify-end border-b border-gray-100 bg-white px-8">
-          {/* Avatar Dropdown Trigger (On Click) */}
-          <div className="relative" ref={userMenuRef}>
+        {/* Top Header */}
+        <header className="flex h-16 items-center justify-between border-b border-gray-100 bg-white px-4 sm:px-8">
+          {/* Mobile Hamburger Menu Toggle */}
+          <div className="flex items-center gap-3 lg:hidden">
+            <button
+              onClick={() => setIsMobileSidebarOpen((prev) => !prev)}
+              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
+              aria-label="Buka menu navigasi"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-white shadow-xs">
+                <Activity className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-extrabold text-gray-900">MediKlinik</span>
+            </div>
+          </div>
+
+          {/* Avatar Dropdown Trigger (Right side) */}
+          <div className="relative ml-auto" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen((prev) => !prev)}
               aria-label="Menu Pengguna"
@@ -215,7 +263,6 @@ export const Layout: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setIsUserMenuOpen(false);
-                      // Future settings modal / page handler
                     }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
@@ -238,7 +285,7 @@ export const Layout: React.FC = () => {
         </header>
 
         {/* Page Content Container */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6">
           <Outlet />
         </main>
       </div>

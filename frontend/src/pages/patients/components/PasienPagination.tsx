@@ -64,7 +64,7 @@ export const PasienPagination: React.FC<PasienPaginationProps> = ({
 
       {/* Right side: Page Navigation */}
       {totalPages > 0 && (
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1 justify-center sm:justify-end">
           {/* First Page Button */}
           <button
             onClick={() => onPageChange(1)}
@@ -80,20 +80,20 @@ export const PasienPagination: React.FC<PasienPaginationProps> = ({
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
             title="Halaman Sebelumnya"
-            className="inline-flex h-8 px-2.5 items-center gap-1 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex h-8 px-2 items-center gap-1 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft size={14} />
             <span className="hidden sm:inline">Sebelumnya</span>
           </button>
 
           {/* Page Numbers */}
-          <div className="flex items-center gap-1 px-1">
+          <div className="flex items-center gap-1 overflow-x-auto px-1">
             {getPageNumbers().map((p, idx) =>
               typeof p === "number" ? (
                 <button
                   key={idx}
                   onClick={() => onPageChange(p)}
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-semibold transition-all ${
+                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold transition-all ${
                     p === page
                       ? "bg-emerald-600 text-white shadow-xs"
                       : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-xs"
@@ -102,7 +102,7 @@ export const PasienPagination: React.FC<PasienPaginationProps> = ({
                   {p}
                 </button>
               ) : (
-                <span key={idx} className="px-1 text-gray-400 font-semibold select-none">
+                <span key={idx} className="px-1 text-gray-400 font-semibold select-none shrink-0">
                   ...
                 </span>
               )
@@ -114,7 +114,7 @@ export const PasienPagination: React.FC<PasienPaginationProps> = ({
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
             title="Halaman Berikutnya"
-            className="inline-flex h-8 px-2.5 items-center gap-1 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex h-8 px-2 items-center gap-1 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 shadow-xs hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             <span className="hidden sm:inline">Berikutnya</span>
             <ChevronRight size={14} />
