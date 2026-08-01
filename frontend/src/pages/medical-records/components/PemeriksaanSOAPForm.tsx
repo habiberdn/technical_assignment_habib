@@ -257,34 +257,29 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
           </div>
         )}
 
-        {/* 1. S - SUBJEKTIF */}
+        {/* 1. S - SUBJEKTIF (Read-Only dari Pendaftaran) */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-xs font-bold text-blue-700">
-              S
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-xs font-bold text-blue-700">
+                S
+              </span>
+              <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
+                Subjektif (Keluhan Utama Pendaftaran)
+              </h3>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-semibold text-gray-600 border border-gray-200">
+              Read-Only (Diinput Saat Pendaftaran)
             </span>
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-              Subjektif (Keluhan Utama &amp; Anamnesa){" "}
-              {!isReadOnly && <span className="text-red-500">*</span>}
-            </h3>
           </div>
           <textarea
             rows={3}
-            disabled={isReadOnly}
+            readOnly
+            disabled
             value={formData.keluhanSubjective}
-            onChange={(e) => handleChange("keluhanSubjective", e.target.value)}
-            placeholder="Catat keluhan utama, riwayat penyakit sekarang, riwayat alergi, dsb..."
-            className={`w-full rounded-xl border p-3 text-xs text-gray-800 focus:outline-none focus:ring-2 ${
-              errors.keluhanSubjective
-                ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
-                : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
-            } ${isReadOnly ? "bg-gray-100 cursor-not-allowed text-gray-600" : ""}`}
+            placeholder="Keluhan awal pasien dari pendaftaran..."
+            className="w-full rounded-xl border border-gray-200 bg-gray-100/80 p-3 text-xs font-medium text-gray-700 cursor-not-allowed shadow-2xs focus:outline-none"
           />
-          {errors.keluhanSubjective && (
-            <p className="text-[11px] text-red-600 flex items-center gap-1">
-              <AlertCircle size={13} /> {errors.keluhanSubjective}
-            </p>
-          )}
         </div>
 
         {/* 2. O - OBJEKTIF (Vital Signs) */}

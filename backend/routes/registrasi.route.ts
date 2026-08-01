@@ -37,7 +37,7 @@ registrasiRouter.post(
 
 registrasiRouter.patch(
   "/:id/panggil",
-  authorize("ADMIN", "PETUGAS_PENDAFTARAN"),
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
   registrasiController.panggilAntrean
 );
 

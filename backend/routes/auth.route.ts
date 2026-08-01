@@ -10,9 +10,14 @@ const authRouter = Router();
 
 // Middleware opsional untuk mendeteksi token jika ada pada route register
 const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1];
+  let token: string | undefined;
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (token) {
     try {
       req.user = verifyToken(token);
     } catch {

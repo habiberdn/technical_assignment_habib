@@ -25,7 +25,8 @@ export class UserController {
 
   async getUserById(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await userService.getUserById(req.params.id);
+      const id = req.params.id as string;
+      const user = await userService.getUserById(id);
       res.status(200).json({
         success: true,
         data: user,
@@ -50,7 +51,8 @@ export class UserController {
 
   async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const updatedUser = await userService.updateUser(req.params.id, req.body);
+      const id = req.params.id as string;
+      const updatedUser = await userService.updateUser(id, req.body);
       res.status(200).json({
         success: true,
         message: "Data staff berhasil diperbarui",
@@ -63,8 +65,9 @@ export class UserController {
 
   async toggleUserStatus(req: Request, res: Response, next: NextFunction) {
     try {
+      const id = req.params.id as string;
       const currentUserId = req.user?.id || "";
-      const updated = await userService.toggleUserStatus(req.params.id, currentUserId);
+      const updated = await userService.toggleUserStatus(id, currentUserId);
       const statusText = updated.isActive ? "diaktifkan" : "dinonaktifkan";
 
       res.status(200).json({
@@ -79,7 +82,8 @@ export class UserController {
 
   async resetPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      await userService.resetPassword(req.params.id, req.body);
+      const id = req.params.id as string;
+      await userService.resetPassword(id, req.body);
       res.status(200).json({
         success: true,
         message: "Kata sandi staff berhasil diperbarui",

@@ -10,7 +10,7 @@ export const createUserSchema = z.object({
   password: z.string().min(6, "Kata sandi minimal 6 karakter"),
   nama: z.string().min(2, "Nama lengkap minimal 2 karakter"),
   role: z.nativeEnum(Role, {
-    errorMap: () => ({ message: "Role tidak valid (ADMIN, DOKTER, PETUGAS_PENDAFTARAN)" }),
+    message: "Role tidak valid (ADMIN, DOKTER, PETUGAS_PENDAFTARAN)",
   }),
   poliId: z.string().optional().nullable(),
   isActive: z.boolean().optional().default(true),

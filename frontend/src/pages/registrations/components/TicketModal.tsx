@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Printer } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import type { RegistrasiItem } from "@/types/registrasi.types.js";
 
 interface TicketModalProps {

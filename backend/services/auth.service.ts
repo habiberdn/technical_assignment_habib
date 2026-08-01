@@ -16,6 +16,13 @@ export class AuthService {
       );
     }
 
+    if (totalUsers > 0 && data.role === "ADMIN") {
+      throw new HttpError(
+        400,
+        "Role Administrator tidak dapat dibuat secara bebas. Hanya DOKTER atau PETUGAS PENDAFTARAN yang dapat ditambahkan."
+      );
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { username: data.username },
     });

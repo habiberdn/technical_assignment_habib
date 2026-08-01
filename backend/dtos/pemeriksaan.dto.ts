@@ -19,11 +19,11 @@ export const createPemeriksaanSchema = z.object({
   keluhanSubjective: z.string().min(1, "Keluhan subjektif wajib diisi"),
   
   // Objective (Vital Signs)
-  tekananSistolik: z.number().int().positive("Tekanan sistolik harus berupa angka positif"),
-  tekananDiastolik: z.number().int().positive("Tekanan diastolik harus berupa angka positif"),
-  suhuTubuh: z.number().positive("Suhu tubuh harus berupa angka positif"),
-  beratBadan: z.number().positive("Berat badan harus berupa angka positif"),
-  tinggiBadan: z.number().positive("Tinggi badan harus berupa angka positif"),
+  tekananSistolik: z.number().int().min(30, "Sistolik minimal 30 mmHg").max(300, "Sistolik maksimal 300 mmHg"),
+  tekananDiastolik: z.number().int().min(20, "Diastolik minimal 20 mmHg").max(200, "Diastolik maksimal 200 mmHg"),
+  suhuTubuh: z.number().min(30, "Suhu tubuh minimal 30 °C").max(45, "Suhu tubuh maksimal 45 °C"),
+  beratBadan: z.number().min(0.5, "Berat badan minimal 0.5 kg").max(500, "Berat badan maksimal 500 kg"),
+  tinggiBadan: z.number().min(20, "Tinggi badan minimal 20 cm").max(300, "Tinggi badan maksimal 300 cm"),
   
   // Assessment
   diagnosa: z.string().min(1, "Diagnosa wajib diisi"),

@@ -246,6 +246,14 @@ export class RegistrasiService {
       );
     }
 
+    // Validasi: MENUNGGU tidak boleh langsung SELESAI tanpa dilakukan pemeriksaan
+    if (current.status === "MENUNGGU" && data.status === "SELESAI" && !current.pemeriksaan) {
+      throw new HttpError(
+        400,
+        "Pasien berstatus MENUNGGU tidak dapat langsung diubah ke SELESAI sebelum dilakukan pemeriksaan medis"
+      );
+    }
+
     const updateData: Prisma.RegistrasiUpdateInput = {};
     if (data.status) updateData.status = data.status;
     if (data.statusAntrean) updateData.statusAntrean = data.statusAntrean;
@@ -253,6 +261,14 @@ export class RegistrasiService {
     // Sinkronisasi otomatis: jika status kunjungan SELESAI, status antrean ikut SELESAI
     if (data.status === "SELESAI") {
       updateData.statusAntrean = "SELESAI";
+    }
+
+    // Jika status kunjungan diubah ke PEMERIKSAAN, status antrean di-set ke DIPANGGIL jika belum
+    if (data.status === "PEMERIKSAAN" && current.statusAntrean !== "SELESAI") {
+      updateData.statusAntrean = "DIPANGGIL";
+      if (!current.dipanggilPadaJam) {
+        updateData.dipanggilPadaJam = new Date();
+      }
     }
 
     return prisma.registrasi.update({

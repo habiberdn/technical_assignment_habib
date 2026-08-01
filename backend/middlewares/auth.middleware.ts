@@ -11,7 +11,9 @@ declare global {
   }
 }
 
-export const authenticate = (req: Request, _res: Response, next: NextFunction) => {
+import prisma from "../lib/prisma.js";
+
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   let token: string | undefined;
 
   // 1. Cek token di HttpOnly Cookie (Utama untuk Web Frontend)
@@ -29,9 +31,18 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
 
   try {
     const decoded = verifyToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      return next(new HttpError(401, "Akun tidak ditemukan atau telah dinonaktifkan"));
+    }
+
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch {
     return next(new HttpError(401, "Token tidak valid atau telah kadaluwarsa"));
   }
 };

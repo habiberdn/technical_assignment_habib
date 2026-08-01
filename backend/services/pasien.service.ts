@@ -1,9 +1,11 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import { CreatePasienDTO, UpdatePasienDTO } from "../dtos/pasien.dto.js";
 import { HttpError } from "../middlewares/error.middleware.js";
 
 export class PasienService {
-  private async generateNoRekamMedis(): Promise<string> {
+  private async generateNoRekamMedis(tx?: Prisma.TransactionClient): Promise<string> {
+    const db = tx || prisma;
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, "0");
@@ -11,7 +13,7 @@ export class PasienService {
     const prefix = `RM-${year}${month}${day}-`;
 
     // Cari pasien dengan nomor rekam medis paling akhir pada hari ini
-    const lastPasien = await prisma.pasien.findFirst({
+    const lastPasien = await db.pasien.findFirst({
       where: {
         noRekamMedis: {
           startsWith: prefix,
@@ -47,13 +49,14 @@ export class PasienService {
       throw new HttpError(400, `NIK '${data.nik}' sudah terdaftar pada sistem`);
     }
 
-    const noRekamMedis = await this.generateNoRekamMedis();
-
-    return prisma.pasien.create({
-      data: {
-        ...data,
-        noRekamMedis,
-      },
+    return prisma.$transaction(async (tx) => {
+      const noRekamMedis = await this.generateNoRekamMedis(tx);
+      return tx.pasien.create({
+        data: {
+          ...data,
+          noRekamMedis,
+        },
+      });
     });
   }
 

@@ -108,7 +108,7 @@ export class UserService {
   }
 
   async createUser(data: CreateUserDTO) {
-    if (data.role === Role.ADMIN) {
+    if (data.role === "ADMIN") {
       throw new HttpError(400, "Role Administrator tidak dapat dibuat melalui menu Kelola Staff. Hanya DOKTER atau PETUGAS PENDAFTARAN yang dapat ditambahkan.");
     }
 
