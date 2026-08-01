@@ -1,5 +1,5 @@
 import React, { useState, useEffect, type FormEvent } from "react";
-import { X, Save, Building2, Tag } from "lucide-react";
+import { X, Save, Building2, Hash } from "lucide-react";
 import { createPoliSchema } from "@/dtos/poli.dto.js";
 import type { Poli } from "@/types/poli.types.js";
 
@@ -12,6 +12,16 @@ interface PoliModalFormProps {
   onSubmit: (data: { kode: string; nama: string }) => void;
 }
 
+interface PoliFormData {
+  kode: string;
+  nama: string;
+}
+
+const initialFormData: PoliFormData = {
+  kode: "",
+  nama: "",
+};
+
 export const PoliModalForm: React.FC<PoliModalFormProps> = ({
   isOpen,
   mode,
@@ -20,8 +30,7 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [kode, setKode] = useState("");
-  const [nama, setNama] = useState("");
+  const [formData, setFormData] = useState<PoliFormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -29,11 +38,12 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
       const timer = setTimeout(() => {
         setErrors({});
         if (mode === "edit" && initialData) {
-          setKode(initialData.kode || "");
-          setNama(initialData.nama || "");
+          setFormData({
+            kode: initialData.kode || "",
+            nama: initialData.nama || "",
+          });
         } else {
-          setKode("");
-          setNama("");
+          setFormData(initialFormData);
         }
       }, 0);
       return () => clearTimeout(timer);
@@ -42,17 +52,24 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
 
   if (!isOpen) return null;
 
+  const handleChange = (field: keyof PoliFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setErrors({});
 
-    const formData = {
-      kode: kode.trim().toUpperCase(),
-      nama: nama.trim(),
+    const payload = {
+      kode: formData.kode.trim().toUpperCase(),
+      nama: formData.nama.trim(),
     };
 
     // Client-side validation with Zod
-    const validationResult = createPoliSchema.safeParse(formData);
+    const validationResult = createPoliSchema.safeParse(payload);
     if (!validationResult.success) {
       const fieldErrors: Record<string, string> = {};
       validationResult.error.issues.forEach((issue) => {
@@ -64,7 +81,7 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
       return;
     }
 
-    onSubmit(formData);
+    onSubmit(payload);
   };
 
   return (
@@ -78,8 +95,8 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
             </h2>
             <p className="text-xs text-gray-500">
               {mode === "create"
-                ? "Isi kode dan nama unit poliklinik baru."
-                : `Mengubah data poliklinik ${initialData?.kode || ""}`}
+                ? "Isi kode dan nama poliklinik baru."
+                : `Mengubah data poli '${initialData?.nama || ""}'`}
             </p>
           </div>
           <button
@@ -98,14 +115,13 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
               Kode Poliklinik <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <Tag className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Hash className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                maxLength={10}
-                value={kode}
-                onChange={(e) => setKode(e.target.value.toUpperCase())}
+                value={formData.kode}
+                onChange={(e) => handleChange("kode", e.target.value.toUpperCase())}
                 placeholder="Contoh: POL-UMU, POL-GIG..."
-                className={`w-full rounded-lg border py-2 pl-9 pr-3 text-xs font-mono font-semibold uppercase text-gray-800 placeholder:normal-case placeholder:font-normal placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-lg border py-2 pl-9 pr-3 text-xs uppercase text-gray-800 placeholder:normal-case placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
                   errors.kode
                     ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
                     : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
@@ -124,9 +140,9 @@ export const PoliModalForm: React.FC<PoliModalFormProps> = ({
               <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                placeholder="Contoh: Poli Umum, Poli Gigi, Poli Anak..."
+                value={formData.nama}
+                onChange={(e) => handleChange("nama", e.target.value)}
+                placeholder="Contoh: Poli Umum, Poli Gigi..."
                 className={`w-full rounded-lg border py-2 pl-9 pr-3 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 ${
                   errors.nama
                     ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
