@@ -1,5 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
+import { useAuth } from "@/context/AuthContext.js";
 import type { FiltersState } from "../types/registrationPage.types.js";
 import type { Poli } from "@/types/poli.types.js";
 import type { DokterItem } from "@/types/registrasi.types.js";
@@ -18,6 +19,7 @@ export const RegistrationFilterToolbar: React.FC<RegistrationFilterToolbarProps>
   doctorList,
   onFilterChange,
 }) => {
+  const { user } = useAuth();
   return (
     <div className="grid grid-cols-1 gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-xs sm:grid-cols-2 lg:grid-cols-5">
       {/* Search */}
@@ -66,18 +68,28 @@ export const RegistrationFilterToolbar: React.FC<RegistrationFilterToolbarProps>
       {/* Filter Dokter */}
       <div>
         <label className="mb-1 block text-xs font-semibold text-gray-700">Dokter</label>
-        <select
-          value={filters.selectedDoctor}
-          onChange={(e) => onFilterChange("selectedDoctor", e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
-        >
-          <option value="all">Semua Dokter</option>
-          {doctorList.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.nama}
-            </option>
-          ))}
-        </select>
+        {user?.role === "DOKTER" ? (
+          <input
+            type="text"
+            readOnly
+            disabled
+            value={user.nama}
+            className="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs text-gray-600 font-medium cursor-not-allowed"
+          />
+        ) : (
+          <select
+            value={filters.selectedDoctor}
+            onChange={(e) => onFilterChange("selectedDoctor", e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20"
+          >
+            <option value="all">Semua Dokter</option>
+            {doctorList.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.nama}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Filter Status */}

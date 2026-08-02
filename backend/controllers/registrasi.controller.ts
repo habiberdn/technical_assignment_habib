@@ -18,10 +18,13 @@ export class RegistrasiController {
 
   async getRegistrasiList(req: Request, res: Response, next: NextFunction) {
     try {
+      const currentUser = req.user;
+      const dokterId = currentUser?.role === "DOKTER" ? currentUser.id : (req.query.dokterId as string);
+
       const list = await registrasiService.getRegistrasiList({
         tanggalKunjungan: req.query.tanggalKunjungan as string,
         poliId: req.query.poliId as string,
-        dokterId: req.query.dokterId as string,
+        dokterId,
         status: req.query.status as string,
         statusAntrean: req.query.statusAntrean as string,
         search: req.query.search as string,
