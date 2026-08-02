@@ -93,7 +93,7 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-700">
+            <label htmlFor="identifier" className="block text-xs font-semibold text-gray-700">
               Username
             </label>
             <div className="relative">
@@ -114,7 +114,7 @@ export function LoginPage() {
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <label htmlFor="password" className="block text-xs font-semibold text-[#8a4a43]">
+              <label htmlFor="password" className="block text-xs font-semibold text-gray-700">
                 Password
               </label>
             </div>

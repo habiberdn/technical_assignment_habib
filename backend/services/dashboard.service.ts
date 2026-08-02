@@ -1,8 +1,9 @@
 import prisma from "../lib/prisma.js";
 import { normalizeDateForDb } from "../utils/date.js";
+import { TokenPayload } from "../utils/jwt.js";
 
 export class DashboardService {
-  async getStats() {
+  async getStats(user?: TokenPayload) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -11,6 +12,9 @@ export class DashboardService {
 
     const todayDbDate = normalizeDateForDb();
 
+    const isDokter = user?.role === "DOKTER";
+    const dokterFilter = isDokter && user?.id ? { dokterId: user.id } : {};
+
     const [
       totalPasien,
       totalPasienHariIni,
@@ -18,21 +22,40 @@ export class DashboardService {
       totalPasienMenunggu,
       totalPasienSelesai,
     ] = await Promise.all([
-      prisma.pasien.count(),
+      prisma.pasien.count({
+        where: isDokter && user?.id
+          ? {
+              registrasi: {
+                some: { dokterId: user.id },
+              },
+            }
+          : undefined,
+      }),
 
       prisma.pasien.count({
-        where: {
-          createdAt: {
-            gte: todayStart,
-            lte: todayEnd,
-          },
-        },
+        where: isDokter && user?.id
+          ? {
+              createdAt: {
+                gte: todayStart,
+                lte: todayEnd,
+              },
+              registrasi: {
+                some: { dokterId: user.id },
+              },
+            }
+          : {
+              createdAt: {
+                gte: todayStart,
+                lte: todayEnd,
+              },
+            },
       }),
 
       // Total Antrean/Kunjungan Hari Ini
       prisma.registrasi.count({
         where: {
           tanggalKunjungan: todayDbDate,
+          ...dokterFilter,
         },
       }),
 
@@ -41,6 +64,7 @@ export class DashboardService {
         where: {
           tanggalKunjungan: todayDbDate,
           status: "MENUNGGU",
+          ...dokterFilter,
         },
       }),
 
@@ -49,6 +73,7 @@ export class DashboardService {
         where: {
           tanggalKunjungan: todayDbDate,
           status: "SELESAI",
+          ...dokterFilter,
         },
       }),
     ]);

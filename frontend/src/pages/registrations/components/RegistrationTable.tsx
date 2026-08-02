@@ -110,7 +110,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                     </button>
                   )}
 
-                  {reg.status === "CHECK_IN" && canExamineOrFinish && (
+                  {reg.status === "CHECK_IN" && reg.statusAntrean === "DIPANGGIL" && canExamineOrFinish && (
                     <button
                       onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
                       className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
@@ -224,7 +224,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                           </button>
                         )}
 
-                        {reg.status === "CHECK_IN" && canExamineOrFinish && (
+                        {reg.status === "CHECK_IN" && reg.statusAntrean === "DIPANGGIL" && canExamineOrFinish && (
                           <button
                             onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
                             className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors cursor-pointer"

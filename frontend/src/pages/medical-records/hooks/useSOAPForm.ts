@@ -76,9 +76,9 @@ interface UseSOAPFormProps {
 
 export const useSOAPForm = ({
   queue,
-  submitting,
+  submitting: _submitting,
   isReadOnly = false,
-  onCallQueue,
+  onCallQueue: _onCallQueue,
   onSubmit,
 }: UseSOAPFormProps) => {
   const [formData, setFormData] = useState<FormSOAPData>(() => buildSOAPData(queue));

@@ -1,6 +1,7 @@
 import React from "react";
 import { Stethoscope, RefreshCw, Clock, Volume2, PlayCircle, Calendar } from "lucide-react";
 import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
+import { useAuth } from "@/context/AuthContext.js";
 
 const formatDate = (dateStr?: string) => {
   if (!dateStr) return "";
@@ -39,6 +40,9 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
   onCallQueue,
   onUpdateStatus,
 }) => {
+  const { user } = useAuth();
+  const canExamine = user?.role === "ADMIN" || user?.role === "DOKTER";
+
   const filteredQueues = queues.filter((item) => {
     if (activeFilter === "SIAP") {
       return item.status === "MENUNGGU" || item.status === "CHECK_IN" || item.status === "PEMERIKSAAN";
@@ -193,7 +197,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
                       </button>
                     )}
 
-                    {onUpdateStatus && item.status === "CHECK_IN" && (
+                    {onUpdateStatus && canExamine && item.status === "CHECK_IN" && item.statusAntrean === "DIPANGGIL" && (
                       <button
                         type="button"
                         onClick={() => onUpdateStatus(item, "PEMERIKSAAN")}

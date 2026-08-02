@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { dashboardService } from "../services/dashboard.service.js";
 
 export class DashboardController {
-  async getStats(_req: Request, res: Response, next: NextFunction) {
+  async getStats(req: Request, res: Response, next: NextFunction) {
     try {
-      const stats = await dashboardService.getStats();
+      const stats = await dashboardService.getStats(req.user);
       return res.status(200).json({
         success: true,
         message: "Statistik dashboard berhasil diambil",

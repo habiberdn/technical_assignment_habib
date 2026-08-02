@@ -7,6 +7,7 @@ import { getDashboardStats, getTodayQueueList } from "@/services/dashboardServic
 import { registrasiService } from "@/services/registrasiService.js";
 import type { DashboardStats, StatCardData, QueueEntry, QueueStatus } from "@/types/dashboard.types.js";
 import { DEFAULT_DASHBOARD_STATS, getStatCardsConfig } from "@/constants/dashboard.js";
+import { useAuth } from "@/context/AuthContext.js";
 
 interface ApiQueueItem {
   id: string;
@@ -22,6 +23,7 @@ interface ApiQueueItem {
 }
 
 export function AdminDashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>(DEFAULT_DASHBOARD_STATS);
   const [queues, setQueues] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -139,16 +141,32 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const statCardsData: StatCardData[] = getStatCardsConfig(stats);
+  const statCardsData: StatCardData[] = getStatCardsConfig(stats, user?.role);
+
+  const getDashboardTitle = () => {
+    if (user?.role === "DOKTER") return `Dashboard Dokter ${user.nama ? `(${user.nama})` : ""}`;
+    if (user?.role === "PETUGAS_PENDAFTARAN") return "Dashboard Petugas Pendaftaran";
+    return "Admin Dashboard Overview";
+  };
+
+  const getDashboardSubtitle = () => {
+    if (user?.role === "DOKTER") {
+      return "Informasi realtime antrean & statistik pelayanan rekam medis spesifik Anda.";
+    }
+    if (user?.role === "PETUGAS_PENDAFTARAN") {
+      return "Informasi realtime antrean & pendaftaran pasien hari ini.";
+    }
+    return "Informasi realtime operasional & statistik pelayanan klinik.";
+  };
 
   return (
     <div className="space-y-6">
       {/* Header section */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Admin Dashboard Overview</h1>
+          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">{getDashboardTitle()}</h1>
           <p className="text-xs text-gray-500 sm:text-sm">
-            Informasi realtime operasional & statistik pelayanan klinik.
+            {getDashboardSubtitle()}
           </p>
         </div>
         <button
