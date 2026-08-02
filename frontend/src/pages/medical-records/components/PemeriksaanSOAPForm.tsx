@@ -8,6 +8,7 @@ import {
   Stethoscope,
   Pill,
   Building2,
+  Volume2,
 } from "lucide-react";
 import type { RegistrasiItem } from "@/types/registrasi.types.js";
 import {
@@ -20,6 +21,7 @@ interface PemeriksaanSOAPFormProps {
   submitting: boolean;
   isReadOnly?: boolean;
   onOpenHistory: (pasienId: string) => void;
+  onCallQueue?: (queue: RegistrasiItem) => void;
   onSubmit: (payload: CreatePemeriksaanDTO) => void;
 }
 
@@ -59,6 +61,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   submitting,
   isReadOnly = false,
   onOpenHistory,
+  onCallQueue,
   onSubmit,
 }) => {
   const [formData, setFormData] = useState<FormSOAPData>(() => ({
@@ -67,8 +70,10 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   }));
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const isWaitingToCall = queue.status === "MENUNGGU" && queue.statusAntrean === "MENUNGGU";
+
   const handleChange = (field: keyof FormSOAPData, value: unknown) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -77,7 +82,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
 
   // Add / Remove Tindakan Medis
   const handleAddTindakan = () => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => ({
       ...prev,
       tindakan: [...prev.tindakan, { namaTindakan: "", catatan: "" }],
@@ -85,7 +90,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   };
 
   const handleRemoveTindakan = (index: number) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => ({
       ...prev,
       tindakan: prev.tindakan.filter((_, idx) => idx !== index),
@@ -97,7 +102,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
     field: "namaTindakan" | "catatan",
     val: string,
   ) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => {
       const updated = [...prev.tindakan];
       updated[index] = { ...updated[index], [field]: val };
@@ -107,7 +112,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
 
   // Add / Remove Resep Obat
   const handleAddResep = () => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => ({
       ...prev,
       resep: [
@@ -123,7 +128,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   };
 
   const handleRemoveResep = (index: number) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => ({
       ...prev,
       resep: prev.resep.filter((_, idx) => idx !== index),
@@ -135,7 +140,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
     field: "namaObat" | "dosis" | "jumlah" | "aturanPakai",
     val: string,
   ) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setFormData((prev) => {
       const updated = [...prev.resep];
       updated[index] = { ...updated[index], [field]: val };
@@ -145,7 +150,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
 
   const handleSubmitForm = (e: FormEvent) => {
     e.preventDefault();
-    if (isReadOnly) return;
+    if (isReadOnly || isWaitingToCall) return;
     setErrors({});
 
     const payloadRaw = {
@@ -257,6 +262,31 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
           </div>
         )}
 
+        {/* Warning Banner for Uncalled Patients (MENUNGGU) */}
+        {!isReadOnly && isWaitingToCall && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-xs text-amber-900 shadow-2xs animate-in fade-in">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle size={18} className="shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-bold">Pasien Masih Berstatus Menunggu</p>
+                <p className="text-amber-800 text-[11px] mt-0.5">
+                  Sesuai alur pelayanan medis, pasien harus dipanggil terlebih dahulu sebelum penginputan SOAP dapat disimpan.
+                </p>
+              </div>
+            </div>
+            {onCallQueue && (
+              <button
+                type="button"
+                onClick={() => onCallQueue(queue)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-amber-700 transition cursor-pointer shrink-0"
+              >
+                <Volume2 size={15} />
+                Panggil Pasien Sekarang
+              </button>
+            )}
+          </div>
+        )}
+
         {/* 1. S - SUBJEKTIF (Read-Only dari Pendaftaran) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2">
@@ -300,13 +330,13 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               </label>
               <input
                 type="number"
-                disabled={isReadOnly}
+                disabled={isReadOnly || isWaitingToCall}
                 value={formData.tekananSistolik}
                 onChange={(e) =>
                   handleChange("tekananSistolik", e.target.value)
                 }
                 className={`w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20 ${
-                  isReadOnly
+                  isReadOnly || isWaitingToCall
                     ? "bg-gray-100 cursor-not-allowed text-gray-600"
                     : ""
                 }`}
@@ -319,13 +349,13 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               </label>
               <input
                 type="number"
-                disabled={isReadOnly}
+                disabled={isReadOnly || isWaitingToCall}
                 value={formData.tekananDiastolik}
                 onChange={(e) =>
                   handleChange("tekananDiastolik", e.target.value)
                 }
                 className={`w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20 ${
-                  isReadOnly
+                  isReadOnly || isWaitingToCall
                     ? "bg-gray-100 cursor-not-allowed text-gray-600"
                     : ""
                 }`}
@@ -339,11 +369,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               <input
                 type="number"
                 step="0.1"
-                disabled={isReadOnly}
+                disabled={isReadOnly || isWaitingToCall}
                 value={formData.suhuTubuh}
                 onChange={(e) => handleChange("suhuTubuh", e.target.value)}
                 className={`w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20 ${
-                  isReadOnly
+                  isReadOnly || isWaitingToCall
                     ? "bg-gray-100 cursor-not-allowed text-gray-600"
                     : ""
                 }`}
@@ -357,11 +387,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               <input
                 type="number"
                 step="0.5"
-                disabled={isReadOnly}
+                disabled={isReadOnly || isWaitingToCall}
                 value={formData.beratBadan}
                 onChange={(e) => handleChange("beratBadan", e.target.value)}
                 className={`w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20 ${
-                  isReadOnly
+                  isReadOnly || isWaitingToCall
                     ? "bg-gray-100 cursor-not-allowed text-gray-600"
                     : ""
                 }`}
@@ -374,11 +404,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               </label>
               <input
                 type="number"
-                disabled={isReadOnly}
+                disabled={isReadOnly || isWaitingToCall}
                 value={formData.tinggiBadan}
                 onChange={(e) => handleChange("tinggiBadan", e.target.value)}
                 className={`w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600/20 ${
-                  isReadOnly
+                  isReadOnly || isWaitingToCall
                     ? "bg-gray-100 cursor-not-allowed text-gray-600"
                     : ""
                 }`}
@@ -395,12 +425,12 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
             </span>
             <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
               Asesmen / Diagnosa Medis{" "}
-              {!isReadOnly && <span className="text-red-500">*</span>}
+              {!isReadOnly && !isWaitingToCall && <span className="text-red-500">*</span>}
             </h3>
           </div>
           <textarea
             rows={2}
-            disabled={isReadOnly}
+            disabled={isReadOnly || isWaitingToCall}
             value={formData.diagnosa}
             onChange={(e) => handleChange("diagnosa", e.target.value)}
             placeholder="Contoh: Febris ec susp. ISPA, Hipertensi Grade 1..."
@@ -408,7 +438,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               errors.diagnosa
                 ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
                 : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
-            } ${isReadOnly ? "bg-gray-100 cursor-not-allowed text-gray-600" : ""}`}
+            } ${isReadOnly || isWaitingToCall ? "bg-gray-100 cursor-not-allowed text-gray-600" : ""}`}
           />
           {errors.diagnosa && (
             <p className="text-[11px] text-red-600 flex items-center gap-1">
@@ -425,12 +455,12 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
             </span>
             <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
               Plan (Rencana Terapi &amp; Penatalaksanaan){" "}
-              {!isReadOnly && <span className="text-red-500">*</span>}
+              {!isReadOnly && !isWaitingToCall && <span className="text-red-500">*</span>}
             </h3>
           </div>
           <textarea
             rows={2}
-            disabled={isReadOnly}
+            disabled={isReadOnly || isWaitingToCall}
             value={formData.rencanaTerapi}
             onChange={(e) => handleChange("rencanaTerapi", e.target.value)}
             placeholder="Contoh: Istirahat cukup, minum air hangat 2L/hari, edukasi tanda bahaya..."
@@ -438,7 +468,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               errors.rencanaTerapi
                 ? "border-red-300 bg-red-50/30 focus:border-red-500 focus:ring-red-500/20"
                 : "border-gray-200 bg-gray-50/50 focus:border-emerald-600 focus:ring-emerald-600/20"
-            } ${isReadOnly ? "bg-gray-100 cursor-not-allowed text-gray-600" : ""}`}
+            } ${isReadOnly || isWaitingToCall ? "bg-gray-100 cursor-not-allowed text-gray-600" : ""}`}
           />
           {errors.rencanaTerapi && (
             <p className="text-[11px] text-red-600 flex items-center gap-1">
@@ -456,11 +486,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                 <Stethoscope size={15} className="text-emerald-600" />
                 Tindakan Medis (Opsional)
               </div>
-              {!isReadOnly && (
+              {!isReadOnly && !isWaitingToCall && (
                 <button
                   type="button"
                   onClick={handleAddTindakan}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline cursor-pointer"
                 >
                   <Plus size={13} /> Tambah Tindakan
                 </button>
@@ -480,7 +510,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                   >
                     <input
                       type="text"
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || isWaitingToCall}
                       value={t.namaTindakan}
                       onChange={(e) =>
                         handleTindakanChange(
@@ -492,11 +522,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                       placeholder="Nama tindakan (contoh: Nebulisasi)"
                       className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
                     />
-                    {!isReadOnly && (
+                    {!isReadOnly && !isWaitingToCall && (
                       <button
                         type="button"
                         onClick={() => handleRemoveTindakan(idx)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -514,11 +544,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                 <Pill size={15} className="text-emerald-600" />
                 Resep Obat (Opsional)
               </div>
-              {!isReadOnly && (
+              {!isReadOnly && !isWaitingToCall && (
                 <button
                   type="button"
                   onClick={handleAddResep}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline cursor-pointer"
                 >
                   <Plus size={13} /> Tambah Obat
                 </button>
@@ -538,7 +568,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                   >
                     <input
                       type="text"
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || isWaitingToCall}
                       value={r.namaObat}
                       onChange={(e) =>
                         handleResepChange(idx, "namaObat", e.target.value)
@@ -548,7 +578,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                     />
                     <input
                       type="text"
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || isWaitingToCall}
                       value={r.dosis}
                       onChange={(e) =>
                         handleResepChange(idx, "dosis", e.target.value)
@@ -558,7 +588,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                     />
                     <input
                       type="number"
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || isWaitingToCall}
                       value={r.jumlah}
                       onChange={(e) =>
                         handleResepChange(idx, "jumlah", e.target.value)
@@ -566,11 +596,11 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                       placeholder="Jml"
                       className="col-span-3 rounded-md border border-gray-200 px-2 py-1 text-xs focus:border-emerald-600 focus:outline-none"
                     />
-                    {!isReadOnly && (
+                    {!isReadOnly && !isWaitingToCall && (
                       <button
                         type="button"
                         onClick={() => handleRemoveResep(idx)}
-                        className="col-span-1 text-red-500 hover:text-red-700 flex items-center justify-center"
+                        className="col-span-1 text-red-500 hover:text-red-700 flex items-center justify-center cursor-pointer"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -587,12 +617,15 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
           <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
             <button
               type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-50 transition-all cursor-pointer"
+              disabled={submitting || isWaitingToCall}
+              title={isWaitingToCall ? "Pasien harus dipanggil terlebih dahulu sebelum menyimpan SOAP" : "Simpan & Selesaikan Pemeriksaan"}
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               <Save size={16} />
               {submitting
                 ? "Menyimpan SOAP..."
+                : isWaitingToCall
+                ? "Panggil Pasien Dahulu Untuk Simpan"
                 : "Simpan & Selesaikan Pemeriksaan"}
             </button>
           </div>

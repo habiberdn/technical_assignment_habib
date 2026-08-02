@@ -200,6 +200,38 @@ export const PemeriksaanPage: React.FC = () => {
     }
   };
 
+  // Handle Doctor Calling Queue
+  const handleCallQueue = async (queue: RegistrasiItem) => {
+    try {
+      setError(null);
+      await registrasiService.panggilAntrean(queue.id);
+      setSuccessMessage(`Memanggil nomor antrean ${queue.nomorAntrean} (${queue.pasien?.nama})...`);
+      await fetchTodayQueues();
+    } catch (err: unknown) {
+      console.error("[Call Queue error]", err);
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Gagal memanggil antrean pasien.";
+      setError(msg);
+    }
+  };
+
+  // Handle Doctor Updating Status
+  const handleUpdateStatus = async (queue: RegistrasiItem, status: "MENUNGGU" | "CHECK_IN" | "PEMERIKSAAN" | "SELESAI") => {
+    try {
+      setError(null);
+      await registrasiService.updateStatus(queue.id, { status });
+      setSuccessMessage(`Status antrean ${queue.nomorAntrean} berhasil diperbarui.`);
+      await fetchTodayQueues();
+    } catch (err: unknown) {
+      console.error("[Update Status error]", err);
+      const msg = isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : "Gagal memperbarui status antrean.";
+      setError(msg);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] space-y-4">
       {/* Header Bar */}
@@ -340,6 +372,8 @@ export const PemeriksaanPage: React.FC = () => {
             onSelectQueue={handleSelectQueue}
             onFilterChange={setActiveFilter}
             onRefresh={fetchTodayQueues}
+            onCallQueue={handleCallQueue}
+            onUpdateStatus={handleUpdateStatus}
           />
         </div>
 
@@ -359,6 +393,7 @@ export const PemeriksaanPage: React.FC = () => {
                 submitting={submitting}
                 isReadOnly={false}
                 onOpenHistory={handleOpenHistory}
+                onCallQueue={handleCallQueue}
                 onSubmit={handleSubmitSOAP}
               />
             )

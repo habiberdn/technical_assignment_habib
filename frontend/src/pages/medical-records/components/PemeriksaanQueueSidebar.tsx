@@ -1,6 +1,6 @@
 import React from "react";
-import { Stethoscope, RefreshCw, Clock } from "lucide-react";
-import type { RegistrasiItem } from "@/types/registrasi.types.js";
+import { Stethoscope, RefreshCw, Clock, Volume2, PlayCircle } from "lucide-react";
+import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
 
 interface PemeriksaanQueueSidebarProps {
   queues: RegistrasiItem[];
@@ -10,6 +10,8 @@ interface PemeriksaanQueueSidebarProps {
   onSelectQueue: (queue: RegistrasiItem) => void;
   onFilterChange: (filter: "SIAP" | "SELESAI" | "ALL") => void;
   onRefresh: () => void;
+  onCallQueue?: (queue: RegistrasiItem) => void;
+  onUpdateStatus?: (queue: RegistrasiItem, status: StatusKunjungan) => void;
 }
 
 export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = ({
@@ -20,6 +22,8 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
   onSelectQueue,
   onFilterChange,
   onRefresh,
+  onCallQueue,
+  onUpdateStatus,
 }) => {
   const filteredQueues = queues.filter((item) => {
     if (activeFilter === "SIAP") {
@@ -56,7 +60,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
           <button
             onClick={onRefresh}
             disabled={loading}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
             title="Refresh Antrean"
           >
             <RefreshCw size={14} className={loading ? "animate-spin text-emerald-600" : ""} />
@@ -68,7 +72,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
           <button
             type="button"
             onClick={() => onFilterChange("SIAP")}
-            className={`rounded-lg py-1.5 transition-colors ${
+            className={`rounded-lg py-1.5 transition-colors cursor-pointer ${
               activeFilter === "SIAP"
                 ? "bg-white text-emerald-700 shadow-xs"
                 : "hover:text-gray-900"
@@ -79,7 +83,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
           <button
             type="button"
             onClick={() => onFilterChange("SELESAI")}
-            className={`rounded-lg py-1.5 transition-colors ${
+            className={`rounded-lg py-1.5 transition-colors cursor-pointer ${
               activeFilter === "SELESAI"
                 ? "bg-white text-emerald-700 shadow-xs"
                 : "hover:text-gray-900"
@@ -90,7 +94,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
           <button
             type="button"
             onClick={() => onFilterChange("ALL")}
-            className={`rounded-lg py-1.5 transition-colors ${
+            className={`rounded-lg py-1.5 transition-colors cursor-pointer ${
               activeFilter === "ALL"
                 ? "bg-white text-emerald-700 shadow-xs"
                 : "hover:text-gray-900"
@@ -146,13 +150,38 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
                   {getStatusBadge(item.status)}
                 </div>
 
-                <div className="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2 text-[11px] text-gray-500">
-                  <span className="truncate max-w-[140px] text-gray-600 font-medium">
-                    {item.poli?.nama}
-                  </span>
+                {/* Patient Payment & Action Bar */}
+                <div className="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2 text-[11px]">
                   <span className="font-mono text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
                     {item.jenisPembayaran}
                   </span>
+
+                  {/* Action Buttons for Doctor */}
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    {onCallQueue && item.status !== "SELESAI" && (
+                      <button
+                        type="button"
+                        onClick={() => onCallQueue(item)}
+                        className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                        title="Panggil Pasien"
+                      >
+                        <Volume2 size={12} />
+                        Panggil
+                      </button>
+                    )}
+
+                    {onUpdateStatus && item.status === "CHECK_IN" && (
+                      <button
+                        type="button"
+                        onClick={() => onUpdateStatus(item, "PEMERIKSAAN")}
+                        className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                        title="Periksa Pasien"
+                      >
+                        <PlayCircle size={12} />
+                        Periksa
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -162,3 +191,4 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
     </div>
   );
 };
+

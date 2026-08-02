@@ -54,7 +54,7 @@ export class RegistrasiController {
   async panggilAntrean(req: Request, res: Response, next: NextFunction) {
     try {
       const id = String(req.params.id);
-      const registrasi = await registrasiService.panggilAntrean(id);
+      const registrasi = await registrasiService.panggilAntrean(id, req.user!);
       return res.status(200).json({
         success: true,
         message: `Antrean '${registrasi.nomorAntrean}' dipanggil`,
@@ -67,15 +67,9 @@ export class RegistrasiController {
 
   async panggilNextAntrean(req: Request, res: Response, next: NextFunction) {
     try {
-      const poliId = req.query.poliId as string;
-      const dokterId = req.query.dokterId as string;
-      if (!poliId) {
-        return res.status(400).json({
-          success: false,
-          message: "Query parameter 'poliId' wajib disertakan untuk memanggil antrean berikutnya",
-        });
-      }
-      const registrasi = await registrasiService.panggilNextAntrean(poliId, dokterId);
+      const poliId = req.query.poliId as string | undefined;
+      const dokterId = req.query.dokterId as string | undefined;
+      const registrasi = await registrasiService.panggilNextAntrean(req.user!, poliId, dokterId);
       return res.status(200).json({
         success: true,
         message: `Antrean berikutnya '${registrasi.nomorAntrean}' berhasil dipanggil`,

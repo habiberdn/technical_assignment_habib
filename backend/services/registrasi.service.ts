@@ -2,6 +2,7 @@ import { Prisma, StatusKunjungan, StatusAntrean } from "@prisma/client";
 import prisma from "../lib/prisma.js";
 import { CreateRegistrasiDTO, UpdateStatusRegistrasiDTO } from "../dtos/registrasi.dto.js";
 import { HttpError } from "../middlewares/error.middleware.js";
+import { TokenPayload } from "../utils/jwt.js";
 
 export class RegistrasiService {
   async createRegistrasi(petugasId: string, data: CreateRegistrasiDTO) {
@@ -174,19 +175,34 @@ export class RegistrasiService {
     return registrasi;
   }
 
-  async panggilAntrean(id: string) {
+  async panggilAntrean(id: string, currentUser: TokenPayload) {
     const registrasi = await this.getRegistrasiById(id);
 
     if (registrasi.statusAntrean === "SELESAI") {
       throw new HttpError(400, "Antrean ini sudah selesai dilayani dan tidak dapat dipanggil kembali");
     }
 
+    if (currentUser.role === "DOKTER") {
+      if (registrasi.dokterId !== currentUser.id) {
+        throw new HttpError(
+          403,
+          "Akses ditolak. Dokter hanya dapat memanggil pasien yang ditugaskan untuk Anda"
+        );
+      }
+    }
+
+    const updateData: Prisma.RegistrasiUpdateInput = {
+      statusAntrean: "DIPANGGIL",
+      dipanggilPadaJam: new Date(),
+    };
+
+    if (currentUser.role === "DOKTER" && (registrasi.status === "MENUNGGU" || registrasi.status === "CHECK_IN")) {
+      updateData.status = "PEMERIKSAAN";
+    }
+
     return prisma.registrasi.update({
       where: { id },
-      data: {
-        statusAntrean: "DIPANGGIL",
-        dipanggilPadaJam: new Date(),
-      },
+      data: updateData,
       include: {
         pasien: true,
         poli: true,
@@ -195,18 +211,45 @@ export class RegistrasiService {
     });
   }
 
-  async panggilNextAntrean(poliId: string, dokterId?: string) {
+  async panggilNextAntrean(currentUser: TokenPayload, poliId?: string, dokterId?: string) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    let targetPoliId = poliId;
+    let targetDokterId = dokterId;
+
+    if (currentUser.role === "DOKTER") {
+      const dokterUser = await prisma.user.findUnique({
+        where: { id: currentUser.id },
+        select: { id: true, poliId: true, role: true },
+      });
+
+      if (!dokterUser || !dokterUser.poliId) {
+        throw new HttpError(
+          400,
+          "Dokter belum terdaftar di Poliklinik manapun. Silakan hubungi Administrator."
+        );
+      }
+
+      targetPoliId = dokterUser.poliId;
+      targetDokterId = currentUser.id;
+    } else {
+      if (!targetPoliId) {
+        throw new HttpError(
+          400,
+          "Query parameter 'poliId' wajib disertakan untuk memanggil antrean berikutnya"
+        );
+      }
+    }
+
     const where: Prisma.RegistrasiWhereInput = {
-      poliId,
+      poliId: targetPoliId,
       tanggalKunjungan: today,
       statusAntrean: "MENUNGGU",
     };
 
-    if (dokterId) {
-      where.dokterId = dokterId;
+    if (targetDokterId) {
+      where.dokterId = targetDokterId;
     }
 
     return prisma.$transaction(async (tx) => {
@@ -220,12 +263,18 @@ export class RegistrasiService {
         throw new HttpError(404, "Tidak ada antrean berstatus MENUNGGU untuk dipanggil");
       }
 
+      const updateData: Prisma.RegistrasiUpdateInput = {
+        statusAntrean: "DIPANGGIL",
+        dipanggilPadaJam: new Date(),
+      };
+
+      if (currentUser.role === "DOKTER" && (nextQueue.status === "MENUNGGU" || nextQueue.status === "CHECK_IN")) {
+        updateData.status = "PEMERIKSAAN";
+      }
+
       return tx.registrasi.update({
         where: { id: nextQueue.id },
-        data: {
-          statusAntrean: "DIPANGGIL",
-          dipanggilPadaJam: new Date(),
-        },
+        data: updateData,
         include: {
           pasien: true,
           poli: true,

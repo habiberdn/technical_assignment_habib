@@ -26,7 +26,8 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   onPageChange,
 }) => {
   const { user } = useAuth();
-  const isManageable = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
+  const canCheckIn = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
+  const canExamineOrFinish = user?.role === "ADMIN" || user?.role === "DOKTER";
   return (
     <div className="space-y-4">
       {/* Mobile Card List View (< md) */}
@@ -83,7 +84,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
               </div>
 
               <div className="flex items-center justify-between pt-1">
-                <p className="text-xs text-gray-500 italic truncate max-w-[180px]">
+                <p className="text-xs text-gray-500 italic truncate max-w-45">
                   &ldquo;{reg.keluhanAwal}&rdquo;
                 </p>
 
@@ -98,35 +99,31 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                     Panggil
                   </button>
 
-                  {isManageable && (
-                    <>
-                      {reg.status === "MENUNGGU" && (
-                        <button
-                          onClick={() => onUpdateStatus(reg, "CHECK_IN")}
-                          className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100"
-                        >
-                          Check In
-                        </button>
-                      )}
+                  {reg.status === "MENUNGGU" && canCheckIn && (
+                    <button
+                      onClick={() => onUpdateStatus(reg, "CHECK_IN")}
+                      className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 cursor-pointer"
+                    >
+                      Check In
+                    </button>
+                  )}
 
-                      {reg.status === "CHECK_IN" && (
-                        <button
-                          onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
-                          className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                        >
-                          Periksa
-                        </button>
-                      )}
+                  {reg.status === "CHECK_IN" && canExamineOrFinish && (
+                    <button
+                      onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
+                      className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+                    >
+                      Periksa
+                    </button>
+                  )}
 
-                      {reg.status === "PEMERIKSAAN" && (
-                        <button
-                          onClick={() => onUpdateStatus(reg, "SELESAI")}
-                          className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200"
-                        >
-                          Selesai
-                        </button>
-                      )}
-                    </>
+                  {reg.status === "PEMERIKSAAN" && canExamineOrFinish && (
+                    <button
+                      onClick={() => onUpdateStatus(reg, "SELESAI")}
+                      className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 cursor-pointer"
+                    >
+                      Selesai
+                    </button>
                   )}
                 </div>
               </div>
@@ -141,13 +138,13 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="bg-gray-50/70 border-b border-gray-100 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                <th className="px-5 py-3.5">No. Antrean</th>
-                <th className="px-5 py-3.5">Pasien</th>
-                <th className="px-5 py-3.5">Poliklinik &amp; Dokter</th>
-                <th className="px-5 py-3.5">Keluhan Awal</th>
-                <th className="px-5 py-3.5">Penjamin</th>
-                <th className="px-5 py-3.5">Status</th>
-                <th className="px-5 py-3.5 text-right">Aksi</th>
+                <th className="px-5 py-3.5 text-start">No. Antrean</th>
+                <th className="px-5 py-3.5 text-start">Pasien</th>
+                <th className="px-5 py-3.5 text-start">Poliklinik &amp; Dokter</th>
+                <th className="px-5 py-3.5 text-start">Keluhan Awal</th>
+                <th className="px-5 py-3.5 text-start">Penjamin</th>
+                <th className="px-5 py-3.5 text-start">Status</th>
+                <th className="px-5 py-3.5 text-start">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -185,7 +182,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                       <p className="font-semibold text-gray-800">{reg.poli?.nama}</p>
                       <p className="text-xs text-gray-400">{reg.dokter?.nama}</p>
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-gray-600 max-w-[200px] truncate">
+                    <td className="px-5 py-3.5 text-xs text-gray-600 max-w-50 truncate">
                       {reg.keluhanAwal}
                     </td>
                     <td className="px-5 py-3.5 font-mono text-xs text-gray-700">
@@ -198,47 +195,43 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                         {badgeStyle.label}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-5 py-3.5 text-right flex justify-start">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => onCallQueue(reg)}
                           disabled={callingId === reg.id || reg.statusAntrean === "SELESAI"}
-                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40 transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-40 transition-colors cursor-pointer"
                           title="Panggil Antrean"
                         >
                           <Volume2 size={14} />
                           Panggil
                         </button>
 
-                        {isManageable && (
-                          <>
-                            {reg.status === "MENUNGGU" && (
-                              <button
-                                onClick={() => onUpdateStatus(reg, "CHECK_IN")}
-                                className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                              >
-                                Check In
-                              </button>
-                            )}
+                        {reg.status === "MENUNGGU" && canCheckIn && (
+                          <button
+                            onClick={() => onUpdateStatus(reg, "CHECK_IN")}
+                            className="rounded-lg bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                          >
+                            Check In
+                          </button>
+                        )}
 
-                            {reg.status === "CHECK_IN" && (
-                              <button
-                                onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
-                                className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
-                              >
-                                Periksa
-                              </button>
-                            )}
+                        {reg.status === "CHECK_IN" && canExamineOrFinish && (
+                          <button
+                            onClick={() => onUpdateStatus(reg, "PEMERIKSAAN")}
+                            className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                          >
+                            Periksa
+                          </button>
+                        )}
 
-                            {reg.status === "PEMERIKSAAN" && (
-                              <button
-                                onClick={() => onUpdateStatus(reg, "SELESAI")}
-                                className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors"
-                              >
-                                Selesai
-                              </button>
-                            )}
-                          </>
+                        {reg.status === "PEMERIKSAAN" && canExamineOrFinish && (
+                          <button
+                            onClick={() => onUpdateStatus(reg, "SELESAI")}
+                            className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer"
+                          >
+                            Selesai
+                          </button>
                         )}
                       </div>
                     </td>

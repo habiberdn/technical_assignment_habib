@@ -128,7 +128,7 @@ export const Layout: React.FC = () => {
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
             >
               <Plus size={16} />
-              Pendaftaran Pasien
+              Daftar Antrean
             </button>
           </div>
         )}
