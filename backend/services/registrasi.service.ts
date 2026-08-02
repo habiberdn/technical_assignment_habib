@@ -295,11 +295,11 @@ export class RegistrasiService {
       );
     }
 
-    // Validasi: MENUNGGU tidak boleh langsung SELESAI tanpa dilakukan pemeriksaan
-    if (current.status === "MENUNGGU" && data.status === "SELESAI" && !current.pemeriksaan) {
+    // Validasi: Status SELESAI hanya dapat diset secara otomatis ketika Dokter telah menyelesaikan pemeriksaan medis (SOAP)
+    if ((data.status === "SELESAI" || data.statusAntrean === "SELESAI") && !current.pemeriksaan) {
       throw new HttpError(
         400,
-        "Pasien berstatus MENUNGGU tidak dapat langsung diubah ke SELESAI sebelum dilakukan pemeriksaan medis"
+        "Status SELESAI tidak dapat diubah secara manual tanpa penyelesaian pengisian rekam medis (SOAP) oleh Dokter."
       );
     }
 

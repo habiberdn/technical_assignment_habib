@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Volume2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext.js";
 import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
@@ -25,6 +26,7 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
   onUpdateStatus,
   onPageChange,
 }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const canCheckIn = user?.role === "ADMIN" || user?.role === "PETUGAS_PENDAFTARAN";
   const canExamineOrFinish = user?.role === "ADMIN" || user?.role === "DOKTER";
@@ -117,13 +119,19 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                     </button>
                   )}
 
-                  {reg.status === "PEMERIKSAAN" && canExamineOrFinish && (
-                    <button
-                      onClick={() => onUpdateStatus(reg, "SELESAI")}
-                      className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 cursor-pointer"
-                    >
-                      Selesai
-                    </button>
+                  {reg.status === "PEMERIKSAAN" && (
+                    user?.role === "DOKTER" ? (
+                      <button
+                        onClick={() => navigate("/pemeriksaan")}
+                        className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700 cursor-pointer"
+                      >
+                        Isi SOAP
+                      </button>
+                    ) : (
+                      <span className="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                        Menunggu SOAP Dokter
+                      </span>
+                    )
                   )}
                 </div>
               </div>
@@ -225,13 +233,19 @@ export const RegistrationTable: React.FC<RegistrationTableProps> = ({
                           </button>
                         )}
 
-                        {reg.status === "PEMERIKSAAN" && canExamineOrFinish && (
-                          <button
-                            onClick={() => onUpdateStatus(reg, "SELESAI")}
-                            className="rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-200 transition-colors cursor-pointer"
-                          >
-                            Selesai
-                          </button>
+                        {reg.status === "PEMERIKSAAN" && (
+                          user?.role === "DOKTER" ? (
+                            <button
+                              onClick={() => navigate("/pemeriksaan")}
+                              className="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                            >
+                              Isi SOAP
+                            </button>
+                          ) : (
+                            <span className="text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                              Menunggu SOAP Dokter
+                            </span>
+                          )
                         )}
                       </div>
                     </td>
