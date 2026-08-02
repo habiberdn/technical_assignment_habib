@@ -23,8 +23,10 @@ export class AuthService {
       );
     }
 
+    const normalizedUsername = data.username.toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
-      where: { username: data.username },
+      where: { username: normalizedUsername },
     });
 
     if (existingUser) {
@@ -48,7 +50,7 @@ export class AuthService {
 
     const newUser = await prisma.user.create({
       data: {
-        username: data.username,
+        username: normalizedUsername,
         password: hashedPassword,
         nama: data.nama,
         role: data.role,
@@ -70,8 +72,10 @@ export class AuthService {
   }
 
   async login(data: LoginUserDTO) {
+    const normalizedUsername = data.username.toLowerCase();
+
     const user = await prisma.user.findUnique({
-      where: { username: data.username },
+      where: { username: normalizedUsername },
     });
 
     if (!user) {
@@ -100,6 +104,37 @@ export class AuthService {
       user: userWithoutPassword,
       token,
     };
+  }
+
+  async changePassword(userId: string, data: { oldPassword?: string; newPassword?: string }) {
+    if (!data.oldPassword || !data.newPassword) {
+      throw new HttpError(400, "Kata sandi lama dan kata sandi baru wajib diisi");
+    }
+    if (data.newPassword.length < 6) {
+      throw new HttpError(400, "Kata sandi baru minimal 6 karakter");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new HttpError(404, "User tidak ditemukan");
+    }
+
+    const isMatch = await comparePassword(data.oldPassword, user.password);
+    if (!isMatch) {
+      throw new HttpError(400, "Kata sandi lama Anda tidak sesuai");
+    }
+
+    const hashedPassword = await hashPassword(data.newPassword);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: "Kata sandi berhasil diperbarui" };
   }
 
   async getProfile(userId: string) {

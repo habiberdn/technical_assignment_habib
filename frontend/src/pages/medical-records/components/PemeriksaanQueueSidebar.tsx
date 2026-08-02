@@ -1,6 +1,20 @@
 import React from "react";
-import { Stethoscope, RefreshCw, Clock, Volume2, PlayCircle } from "lucide-react";
+import { Stethoscope, RefreshCw, Clock, Volume2, PlayCircle, Calendar } from "lucide-react";
 import type { RegistrasiItem, StatusKunjungan } from "@/types/registrasi.types.js";
+
+const formatDate = (dateStr?: string) => {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 interface PemeriksaanQueueSidebarProps {
   queues: RegistrasiItem[];
@@ -55,7 +69,7 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Stethoscope size={18} className="text-emerald-600" />
-            <h2 className="text-sm font-bold text-gray-900">Antrean Pasien Hari Ini</h2>
+            <h2 className="text-sm font-bold text-gray-900">Daftar Antrean Pasien</h2>
           </div>
           <button
             onClick={onRefresh}
@@ -142,9 +156,18 @@ export const PemeriksaanQueueSidebar: React.FC<PemeriksaanQueueSidebarProps> = (
                       <h3 className="text-xs font-bold text-gray-900 truncate max-w-[160px]">
                         {patientName}
                       </h3>
-                      <p className="text-[10px] font-mono text-gray-500">
-                        RM: {item.pasien?.noRekamMedis || "-"}
-                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500">
+                        <span className="font-mono">RM: {item.pasien?.noRekamMedis || "-"}</span>
+                        {item.tanggalKunjungan && (
+                          <>
+                            <span>•</span>
+                            <span className="inline-flex items-center gap-0.5 font-medium text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-100">
+                              <Calendar size={10} className="shrink-0 text-emerald-600" />
+                              {formatDate(item.tanggalKunjungan)}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {getStatusBadge(item.status)}

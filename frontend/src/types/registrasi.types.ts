@@ -35,6 +35,7 @@ export interface RegistrasiItem {
   nomorAntrean: string;
   statusAntrean: StatusAntrean;
   dipanggilPadaJam?: string | null;
+  pemeriksaan?: any;
   createdAt: string;
   updatedAt: string;
 }

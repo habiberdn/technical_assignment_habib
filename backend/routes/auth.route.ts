@@ -68,6 +68,12 @@ authRouter.get(
   authController.getProfile
 );
 
+authRouter.patch(
+  "/change-password",
+  authenticate,
+  authController.changePassword
+);
+
 authRouter.get(
   "/doctors",
   authenticate,

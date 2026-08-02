@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import { normalizeDateForDb } from "../utils/date.js";
 
 export class DashboardService {
   async getStats() {
@@ -7,6 +8,8 @@ export class DashboardService {
 
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
+
+    const todayDbDate = normalizeDateForDb();
 
     const [
       totalPasien,
@@ -29,20 +32,14 @@ export class DashboardService {
       // Total Antrean/Kunjungan Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: {
-            gte: todayStart,
-            lte: todayEnd,
-          },
+          tanggalKunjungan: todayDbDate,
         },
       }),
 
       // Total Pasien Menunggu Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: {
-            gte: todayStart,
-            lte: todayEnd,
-          },
+          tanggalKunjungan: todayDbDate,
           status: "MENUNGGU",
         },
       }),
@@ -50,10 +47,7 @@ export class DashboardService {
       // Total Pasien Selesai Dilayani Hari Ini
       prisma.registrasi.count({
         where: {
-          tanggalKunjungan: {
-            gte: todayStart,
-            lte: todayEnd,
-          },
+          tanggalKunjungan: todayDbDate,
           status: "SELESAI",
         },
       }),

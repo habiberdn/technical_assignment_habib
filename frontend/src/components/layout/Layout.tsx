@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext.js";
+import React from "react";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { NAV_ITEMS, getRoleBadgeColor } from "@/constants/navigation.js";
 import {
   LogOut,
@@ -11,36 +10,30 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { useLayout } from "./hooks/useLayout.js";
 
 export const Layout: React.FC = () => {
-  const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
+  const {
+    state,
+    dispatch,
+    user,
+    navigate,
+    userMenuRef,
+    handleLogout,
+    handleChangePasswordSubmit
+  } = useLayout();
 
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    setIsUserMenuOpen(false);
-    setIsMobileSidebarOpen(false);
-    await logout();
-    navigate("/login");
-  };
+  const {
+    isUserMenuOpen,
+    isMobileSidebarOpen,
+    isChangePasswordOpen,
+    oldPassword,
+    newPassword,
+    passwordError,
+    passwordSuccess,
+    isSubmittingPassword,
+  } = state;
 
   const filteredNavItems = NAV_ITEMS.filter((item) =>
     user ? item.roles.includes(user.role) : false,
@@ -52,7 +45,7 @@ export const Layout: React.FC = () => {
       {isMobileSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs lg:hidden animate-in fade-in duration-150"
-          onClick={() => setIsMobileSidebarOpen(false)}
+          onClick={() => dispatch({ type: "CLOSE_MOBILE_SIDEBAR" })}
         />
       )}
 
@@ -79,7 +72,7 @@ export const Layout: React.FC = () => {
           </div>
           {/* Close button for mobile screen */}
           <button
-            onClick={() => setIsMobileSidebarOpen(false)}
+            onClick={() => dispatch({ type: "CLOSE_MOBILE_SIDEBAR" })}
             className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 lg:hidden"
             aria-label="Tutup menu"
           >
@@ -100,7 +93,7 @@ export const Layout: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsMobileSidebarOpen(false)}
+                onClick={() => dispatch({ type: "CLOSE_MOBILE_SIDEBAR" })}
                 className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-emerald-50 text-emerald-600 font-semibold"
@@ -122,7 +115,7 @@ export const Layout: React.FC = () => {
             <button
               type="button"
               onClick={() => {
-                setIsMobileSidebarOpen(false);
+                dispatch({ type: "CLOSE_MOBILE_SIDEBAR" });
                 navigate("/antrean", { state: { openCreateModal: true, timestamp: Date.now() } });
               }}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 cursor-pointer"
@@ -141,7 +134,7 @@ export const Layout: React.FC = () => {
           {/* Mobile Hamburger Menu Toggle */}
           <div className="flex items-center gap-3 lg:hidden">
             <button
-              onClick={() => setIsMobileSidebarOpen((prev) => !prev)}
+              onClick={() => dispatch({ type: "TOGGLE_MOBILE_SIDEBAR" })}
               className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none"
               aria-label="Buka menu navigasi"
             >
@@ -158,7 +151,7 @@ export const Layout: React.FC = () => {
           {/* Avatar Dropdown Trigger (Right side) */}
           <div className="relative ml-auto" ref={userMenuRef}>
             <button
-              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              onClick={() => dispatch({ type: "TOGGLE_USER_MENU" })}
               aria-label="Menu Pengguna"
               aria-expanded={isUserMenuOpen}
               className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-gray-100 focus:outline-none"
@@ -207,9 +200,7 @@ export const Layout: React.FC = () => {
                 <div className="space-y-0.5">
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                    }}
+                    onClick={() => dispatch({ type: "OPEN_CHANGE_PASSWORD" })}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     <Settings size={16} className="text-gray-400" />
@@ -235,6 +226,88 @@ export const Layout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Modal Pengaturan Akun / Ganti Password */}
+      {isChangePasswordOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-emerald-600" />
+                <h3 className="text-sm font-bold text-gray-900">
+                  Pengaturan Akun - Ganti Kata Sandi
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => dispatch({ type: "CLOSE_CHANGE_PASSWORD" })}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {passwordError && (
+              <div className="rounded-lg bg-red-50 p-3 text-xs font-medium text-red-700 border border-red-200">
+                {passwordError}
+              </div>
+            )}
+
+            {passwordSuccess && (
+              <div className="rounded-lg bg-emerald-50 p-3 text-xs font-medium text-emerald-700 border border-emerald-200">
+                {passwordSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Kata Sandi Lama
+                </label>
+                <input
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "oldPassword", value: e.target.value })}
+                  placeholder="Masukkan kata sandi lama Anda"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-emerald-600 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Kata Sandi Baru
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => dispatch({ type: "SET_FIELD", field: "newPassword", value: e.target.value })}
+                  placeholder="Masukkan kata sandi baru (min 6 karakter)"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-emerald-600 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "CLOSE_CHANGE_PASSWORD" })}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingPassword}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {isSubmittingPassword ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

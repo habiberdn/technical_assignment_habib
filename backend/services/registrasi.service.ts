@@ -3,6 +3,7 @@ import prisma from "../lib/prisma.js";
 import { CreateRegistrasiDTO, UpdateStatusRegistrasiDTO } from "../dtos/registrasi.dto.js";
 import { HttpError } from "../middlewares/error.middleware.js";
 import { TokenPayload } from "../utils/jwt.js";
+import { normalizeDateForDb } from "../utils/date.js";
 
 export class RegistrasiService {
   async createRegistrasi(petugasId: string, data: CreateRegistrasiDTO) {
@@ -32,8 +33,7 @@ export class RegistrasiService {
       throw new HttpError(400, "Dokter yang dipilih tidak bertugas di Poli tersebut");
     }
 
-    const targetDate = data.tanggalKunjungan ? new Date(data.tanggalKunjungan) : new Date();
-    targetDate.setHours(0, 0, 0, 0);
+    const targetDate = normalizeDateForDb(data.tanggalKunjungan);
 
     // Cek apakah pasien sudah memiliki registrasi aktif (belum SELESAI) di hari yang sama
     const existingActiveReg = await prisma.registrasi.findFirst({
@@ -106,13 +106,11 @@ export class RegistrasiService {
     const where: Prisma.RegistrasiWhereInput = {};
 
     if (query.tanggalKunjungan) {
-      const date = new Date(query.tanggalKunjungan);
-      date.setHours(0, 0, 0, 0);
-      where.tanggalKunjungan = date;
+      if (query.tanggalKunjungan !== "all") {
+        where.tanggalKunjungan = normalizeDateForDb(query.tanggalKunjungan);
+      }
     } else {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      where.tanggalKunjungan = today;
+      where.tanggalKunjungan = normalizeDateForDb();
     }
 
     if (query.poliId) {
@@ -146,7 +144,12 @@ export class RegistrasiService {
         pasien: true,
         dokter: { select: { id: true, nama: true } },
         poli: true,
-        pemeriksaan: true,
+        pemeriksaan: {
+          include: {
+            tindakan: true,
+            resep: true,
+          },
+        },
       },
     });
   }
@@ -212,8 +215,7 @@ export class RegistrasiService {
   }
 
   async panggilNextAntrean(currentUser: TokenPayload, poliId?: string, dokterId?: string) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = normalizeDateForDb();
 
     let targetPoliId = poliId;
     let targetDokterId = dokterId;
@@ -245,7 +247,7 @@ export class RegistrasiService {
     const where: Prisma.RegistrasiWhereInput = {
       poliId: targetPoliId,
       tanggalKunjungan: today,
-      statusAntrean: "MENUNGGU",
+      statusAntrean: { in: ["MENUNGGU", "DILEWATI"] },
     };
 
     if (targetDokterId) {

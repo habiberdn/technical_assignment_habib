@@ -1,6 +1,6 @@
-import bcrypt from "bcryptjs";
 import prisma from "../lib/prisma.js";
 import { HttpError } from "../middlewares/error.middleware.js";
+import { hashPassword } from "../utils/password.js";
 import type { CreateUserDTO, UpdateUserDTO, ResetPasswordDTO } from "../dtos/user.dto.js";
 
 export class UserService {
@@ -129,7 +129,11 @@ export class UserService {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    if (data.role === "DOKTER" && !data.poliId) {
+      throw new HttpError(400, "Pengguna dengan role DOKTER wajib memilih Poli tempat bertugas");
+    }
+
+    const hashedPassword = await hashPassword(data.password);
 
     const newUser = await prisma.user.create({
       data: {
@@ -173,6 +177,13 @@ export class UserService {
       }
     }
 
+    const effectiveRole = data.role || targetUser.role;
+    const effectivePoliId = data.poliId !== undefined ? data.poliId : targetUser.poliId;
+
+    if (effectiveRole === "DOKTER" && !effectivePoliId) {
+      throw new HttpError(400, "Pengguna dengan role DOKTER wajib memilih Poliklinik tempat bertugas.");
+    }
+
     if (data.poliId) {
       const poliExists = await prisma.poli.findUnique({
         where: { id: data.poliId },
@@ -190,7 +201,7 @@ export class UserService {
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
     if (data.password && data.password.trim().length >= 6) {
-      updateData.password = await bcrypt.hash(data.password, 10);
+      updateData.password = await hashPassword(data.password);
     }
 
     const updatedUser = await prisma.user.update({
@@ -242,7 +253,7 @@ export class UserService {
   async resetPassword(id: string, data: ResetPasswordDTO) {
     await this.getUserById(id);
 
-    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    const hashedPassword = await hashPassword(data.newPassword);
     await prisma.user.update({
       where: { id },
       data: { password: hashedPassword },

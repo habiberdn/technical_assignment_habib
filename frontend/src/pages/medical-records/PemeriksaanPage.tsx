@@ -1,12 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { isAxiosError } from "axios";
-import { useAuth } from "@/context/AuthContext.js";
-import api from "@/services/api.js";
-import { registrasiService } from "@/services/registrasiService.js";
-import { pemeriksaanService } from "@/services/pemeriksaanService.js";
-import type { CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
-import type { RegistrasiItem, DokterItem } from "@/types/registrasi.types.js";
-import type { Poli } from "@/types/poli.types.js";
+import React from "react";
+import { usePemeriksaan } from "./hooks/usePemeriksaan.js";
 
 import { PemeriksaanQueueSidebar } from "./components/PemeriksaanQueueSidebar.js";
 import { PemeriksaanSOAPForm } from "./components/PemeriksaanSOAPForm.js";
@@ -20,217 +13,41 @@ import {
   Clock,
   X,
   Filter,
+  Calendar,
 } from "lucide-react";
 
 export const PemeriksaanPage: React.FC = () => {
-  const { user } = useAuth();
-
-  const [queues, setQueues] = useState<RegistrasiItem[]>([]);
-  const [selectedQueue, setSelectedQueue] = useState<RegistrasiItem | null>(null);
-  const [activeFilter, setActiveFilter] = useState<"SIAP" | "SELESAI" | "ALL">("SIAP");
-
-  // Filters for Admin view
-  const [selectedPoli, setSelectedPoli] = useState<string>("all");
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
-  const [poliList, setPoliList] = useState<Poli[]>([]);
-  const [doctorList, setDoctorList] = useState<DokterItem[]>([]);
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // Medical History Modal State
-  const [historyPasienId, setHistoryPasienId] = useState<string | null>(null);
-  const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
-
-  // Fetch reference lists for Admin filter
-  useEffect(() => {
-    if (user?.role === "ADMIN") {
-      const fetchRefData = async () => {
-        try {
-          const [poliRes, docRes] = await Promise.all([
-            api.get<{ data: Poli[] }>("/poli"),
-            registrasiService.getDoctors(),
-          ]);
-          setPoliList(poliRes.data.data || []);
-          setDoctorList(docRes || []);
-        } catch {
-          // ignore silent
-        }
-      };
-      fetchRefData();
-    }
-  }, [user?.role]);
-
-  // Fetch today's queue
-  const fetchTodayQueues = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      const todayStr = `${year}-${month}-${day}`;
-
-      const params: Record<string, string> = { tanggalKunjungan: todayStr };
-      if (user?.role === "DOKTER" && user.id) {
-        params.dokterId = user.id;
-      } else if (user?.role === "ADMIN") {
-        if (selectedPoli !== "all") params.poliId = selectedPoli;
-        if (selectedDoctor !== "all") params.dokterId = selectedDoctor;
-      }
-
-      const list = await registrasiService.getRegistrasiList(params);
-      setQueues(list);
-
-      setSelectedQueue((prev) => {
-        if (list.length === 0) return null;
-        if (prev && list.some((item) => item.id === prev.id)) {
-          return list.find((item) => item.id === prev.id) || prev;
-        }
-        const firstSiap = list.find(
-          (item) => item.status === "CHECK_IN" || item.status === "PEMERIKSAAN" || item.status === "MENUNGGU"
-        );
-        return firstSiap || list[0];
-      });
-    } catch (err: unknown) {
-      console.error("[PemeriksaanPage fetch error]", err);
-      setError("Tidak dapat memuat daftar antrean pemeriksaan hari ini. Silakan muat ulang halaman.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user, selectedPoli, selectedDoctor]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, "0");
-        const day = String(now.getDate()).padStart(2, "0");
-        const todayStr = `${year}-${month}-${day}`;
-
-        const params: Record<string, string> = { tanggalKunjungan: todayStr };
-        if (user?.role === "DOKTER" && user.id) {
-          params.dokterId = user.id;
-        } else if (user?.role === "ADMIN") {
-          if (selectedPoli !== "all") params.poliId = selectedPoli;
-          if (selectedDoctor !== "all") params.dokterId = selectedDoctor;
-        }
-
-        const list = await registrasiService.getRegistrasiList(params);
-
-        if (isMounted) {
-          setQueues(list);
-          if (list.length > 0) {
-            const firstSiap = list.find(
-              (item) => item.status === "CHECK_IN" || item.status === "PEMERIKSAAN" || item.status === "MENUNGGU"
-            );
-            setSelectedQueue(firstSiap || list[0]);
-          }
-        }
-      } catch (err: unknown) {
-        console.error("[PemeriksaanPage fetch error]", err);
-        if (isMounted)
-          setError("Tidak dapat memuat daftar antrean pemeriksaan hari ini. Silakan muat ulang halaman.");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id, user?.role, selectedPoli, selectedDoctor]);
-
-  const handleSelectQueue = (queue: RegistrasiItem) => {
-    setSelectedQueue(queue);
-  };
-
-  const handleOpenHistory = (pasienId: string) => {
-    setHistoryPasienId(pasienId);
-    setIsHistoryOpen(true);
-  };
-
-  const handleCloseHistory = () => {
-    setIsHistoryOpen(false);
-    setHistoryPasienId(null);
-  };
-
-  // Live Statistics for Admin Header
-  const stats = useMemo(() => {
-    const total = queues.length;
-    const waiting = queues.filter((q) => q.status === "MENUNGGU" || q.status === "CHECK_IN").length;
-    const inProgress = queues.filter((q) => q.status === "PEMERIKSAAN").length;
-    const completed = queues.filter((q) => q.status === "SELESAI").length;
-    return { total, waiting, inProgress, completed };
-  }, [queues]);
-
-  // Submit SOAP Form (Doctor Only)
-  const handleSubmitSOAP = async (payload: CreatePemeriksaanDTO) => {
-    if (submitting) return;
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      await pemeriksaanService.createPemeriksaan(payload);
-
-      setSuccessMessage(
-        `Pemeriksaan SOAP untuk pasien '${selectedQueue?.pasien?.nama}' (${selectedQueue?.nomorAntrean}) berhasil disimpan & diselesaikan!`
-      );
-
-      // Refresh list & select next waiting patient
-      await fetchTodayQueues();
-    } catch (err: unknown) {
-      console.error("[Submit SOAP error]", err);
-      const msg = isAxiosError(err) && err.response?.data?.message
-        ? err.response.data.message
-        : "Tidak dapat menyimpan pemeriksaan SOAP. Silakan periksa kembali data isian.";
-      setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // Handle Doctor Calling Queue
-  const handleCallQueue = async (queue: RegistrasiItem) => {
-    try {
-      setError(null);
-      await registrasiService.panggilAntrean(queue.id);
-      setSuccessMessage(`Memanggil nomor antrean ${queue.nomorAntrean} (${queue.pasien?.nama})...`);
-      await fetchTodayQueues();
-    } catch (err: unknown) {
-      console.error("[Call Queue error]", err);
-      const msg = isAxiosError(err) && err.response?.data?.message
-        ? err.response.data.message
-        : "Gagal memanggil antrean pasien.";
-      setError(msg);
-    }
-  };
-
-  // Handle Doctor Updating Status
-  const handleUpdateStatus = async (queue: RegistrasiItem, status: "MENUNGGU" | "CHECK_IN" | "PEMERIKSAAN" | "SELESAI") => {
-    try {
-      setError(null);
-      await registrasiService.updateStatus(queue.id, { status });
-      setSuccessMessage(`Status antrean ${queue.nomorAntrean} berhasil diperbarui.`);
-      await fetchTodayQueues();
-    } catch (err: unknown) {
-      console.error("[Update Status error]", err);
-      const msg = isAxiosError(err) && err.response?.data?.message
-        ? err.response.data.message
-        : "Gagal memperbarui status antrean.";
-      setError(msg);
-    }
-  };
+  const {
+    user,
+    queues,
+    selectedQueue,
+    activeFilter,
+    setActiveFilter,
+    selectedDate,
+    setSelectedDate,
+    selectedPoli,
+    setSelectedPoli,
+    selectedDoctor,
+    setSelectedDoctor,
+    poliList,
+    doctorList,
+    loading,
+    submitting,
+    error,
+    setError,
+    successMessage,
+    setSuccessMessage,
+    historyPasienId,
+    isHistoryOpen,
+    fetchTodayQueues,
+    handleSelectQueue,
+    handleOpenHistory,
+    handleCloseHistory,
+    stats,
+    handleSubmitSOAP,
+    handleCallQueue,
+    handleUpdateStatus,
+  } = usePemeriksaan();
 
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] space-y-4">
@@ -248,40 +65,82 @@ export const PemeriksaanPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Admin Multi-Poli Selector */}
-        {user?.role === "ADMIN" && (
-          <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-2xs">
-            <Filter size={15} className="text-emerald-600 shrink-0" />
-            <select
-              value={selectedPoli}
-              onChange={(e) => {
-                setSelectedPoli(e.target.value);
-                setSelectedDoctor("all");
+        {/* Filter Controls (Date & Admin Multi-Poli) */}
+        <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 border-r border-gray-200 pr-2">
+            <Calendar size={15} className="text-emerald-600 shrink-0" />
+            <input
+              type="date"
+              value={selectedDate === "all" ? "" : selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value || "all")}
+              className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, "0");
+                const day = String(now.getDate()).padStart(2, "0");
+                setSelectedDate(`${year}-${month}-${day}`);
               }}
-              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+              className={`rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                selectedDate !== "all" &&
+                selectedDate ===
+                  `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
-              <option value="all">Semua Poliklinik</option>
-              {poliList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedDoctor}
-              onChange={(e) => setSelectedDoctor(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+              Hari Ini
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedDate("all")}
+              className={`rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                selectedDate === "all"
+                  ? "bg-emerald-100 text-emerald-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
-              <option value="all">Semua Dokter</option>
-              {doctorList.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.nama}
-                </option>
-              ))}
-            </select>
+              Semua Tanggal
+            </button>
           </div>
-        )}
+
+          {user?.role === "ADMIN" && (
+            <div className="flex items-center gap-2">
+              <Filter size={15} className="text-emerald-600 shrink-0" />
+              <select
+                value={selectedPoli}
+                onChange={(e) => {
+                  setSelectedPoli(e.target.value);
+                  setSelectedDoctor("all");
+                }}
+                className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+              >
+                <option value="all">Semua Poliklinik</option>
+                {poliList.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 focus:border-emerald-600 focus:outline-none"
+              >
+                <option value="all">Semua Dokter</option>
+                {doctorList.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Admin Realtime Monitoring Stats */}
@@ -417,6 +276,6 @@ export const PemeriksaanPage: React.FC = () => {
       />
     </div>
   );
-}
+};
 
 export default PemeriksaanPage;

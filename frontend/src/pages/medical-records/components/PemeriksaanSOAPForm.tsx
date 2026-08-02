@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from "react";
+import React from "react";
 import {
   Save,
   Plus,
@@ -9,12 +9,11 @@ import {
   Pill,
   Building2,
   Volume2,
+  Calendar,
 } from "lucide-react";
 import type { RegistrasiItem } from "@/types/registrasi.types.js";
-import {
-  createPemeriksaanSchema,
-  type CreatePemeriksaanDTO,
-} from "@/dtos/pemeriksaan.dto.js";
+import { type CreatePemeriksaanDTO } from "@/dtos/pemeriksaan.dto.js";
+import { useSOAPForm } from "../hooks/useSOAPForm.js";
 
 interface PemeriksaanSOAPFormProps {
   queue: RegistrasiItem;
@@ -25,37 +24,6 @@ interface PemeriksaanSOAPFormProps {
   onSubmit: (payload: CreatePemeriksaanDTO) => void;
 }
 
-interface FormSOAPData {
-  keluhanSubjective: string;
-  tekananSistolik: string;
-  tekananDiastolik: string;
-  suhuTubuh: string;
-  beratBadan: string;
-  tinggiBadan: string;
-  diagnosa: string;
-  rencanaTerapi: string;
-  tindakan: { namaTindakan: string; catatan?: string }[];
-  resep: {
-    namaObat: string;
-    dosis: string;
-    jumlah: string;
-    aturanPakai: string;
-  }[];
-}
-
-const initialSOAPData: FormSOAPData = {
-  keluhanSubjective: "",
-  tekananSistolik: "120",
-  tekananDiastolik: "80",
-  suhuTubuh: "36.5",
-  beratBadan: "60",
-  tinggiBadan: "165",
-  diagnosa: "",
-  rencanaTerapi: "",
-  tindakan: [],
-  resep: [],
-};
-
 export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   queue,
   submitting,
@@ -64,136 +32,20 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
   onCallQueue,
   onSubmit,
 }) => {
-  const [formData, setFormData] = useState<FormSOAPData>(() => ({
-    ...initialSOAPData,
-    keluhanSubjective: queue.keluhanAwal || "",
-  }));
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const {
+    formData,
+    errors,
+    isWaitingToCall,
+    handleChange,
+    handleAddTindakan,
+    handleRemoveTindakan,
+    handleTindakanChange,
+    handleAddResep,
+    handleRemoveResep,
+    handleResepChange,
+    handleSubmitForm,
+  } = useSOAPForm({ queue, submitting, isReadOnly, onCallQueue, onSubmit });
 
-  const isWaitingToCall = queue.status === "MENUNGGU" && queue.statusAntrean === "MENUNGGU";
-
-  const handleChange = (field: keyof FormSOAPData, value: unknown) => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  // Add / Remove Tindakan Medis
-  const handleAddTindakan = () => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => ({
-      ...prev,
-      tindakan: [...prev.tindakan, { namaTindakan: "", catatan: "" }],
-    }));
-  };
-
-  const handleRemoveTindakan = (index: number) => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => ({
-      ...prev,
-      tindakan: prev.tindakan.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const handleTindakanChange = (
-    index: number,
-    field: "namaTindakan" | "catatan",
-    val: string,
-  ) => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => {
-      const updated = [...prev.tindakan];
-      updated[index] = { ...updated[index], [field]: val };
-      return { ...prev, tindakan: updated };
-    });
-  };
-
-  // Add / Remove Resep Obat
-  const handleAddResep = () => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => ({
-      ...prev,
-      resep: [
-        ...prev.resep,
-        {
-          namaObat: "",
-          dosis: "3x1",
-          jumlah: "10",
-          aturanPakai: "Sesudah makan",
-        },
-      ],
-    }));
-  };
-
-  const handleRemoveResep = (index: number) => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => ({
-      ...prev,
-      resep: prev.resep.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const handleResepChange = (
-    index: number,
-    field: "namaObat" | "dosis" | "jumlah" | "aturanPakai",
-    val: string,
-  ) => {
-    if (isReadOnly || isWaitingToCall) return;
-    setFormData((prev) => {
-      const updated = [...prev.resep];
-      updated[index] = { ...updated[index], [field]: val };
-      return { ...prev, resep: updated };
-    });
-  };
-
-  const handleSubmitForm = (e: FormEvent) => {
-    e.preventDefault();
-    if (isReadOnly || isWaitingToCall) return;
-    setErrors({});
-
-    const payloadRaw = {
-      registrasiId: queue.id,
-      keluhanSubjective: formData.keluhanSubjective.trim(),
-      tekananSistolik: Number(formData.tekananSistolik),
-      tekananDiastolik: Number(formData.tekananDiastolik),
-      suhuTubuh: Number(formData.suhuTubuh),
-      beratBadan: Number(formData.beratBadan),
-      tinggiBadan: Number(formData.tinggiBadan),
-      diagnosa: formData.diagnosa.trim(),
-      rencanaTerapi: formData.rencanaTerapi.trim(),
-      tindakan: formData.tindakan
-        .filter((t) => t.namaTindakan.trim().length > 0)
-        .map((t) => ({
-          namaTindakan: t.namaTindakan.trim(),
-          catatan: t.catatan?.trim() || undefined,
-        })),
-      resep: formData.resep
-        .filter((r) => r.namaObat.trim().length > 0)
-        .map((r) => ({
-          namaObat: r.namaObat.trim(),
-          dosis: r.dosis.trim(),
-          jumlah: Number(r.jumlah) || 1,
-          aturanPakai: r.aturanPakai.trim(),
-        })),
-    };
-
-    // Safe Parse Zod
-    const result = createPemeriksaanSchema.safeParse(payloadRaw);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        if (issue.path[0]) {
-          fieldErrors[issue.path[0].toString()] = issue.message;
-        }
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    onSubmit(result.data);
-  };
 
   const patientName = queue.pasien?.nama || "Pasien";
   const rawPoliName = queue.poli?.nama || "Poliklinik";
@@ -232,6 +84,17 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-white border border-white/20 shadow-2xs">
                 <Building2 size={13} className="text-emerald-200 shrink-0" />
                 {poliName}
+              </span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-white border border-emerald-400/30 shadow-2xs">
+                <Calendar size={13} className="text-emerald-200 shrink-0" />
+                {queue.tanggalKunjungan
+                  ? new Date(queue.tanggalKunjungan).toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "-"}
               </span>
             </div>
           </div>
@@ -298,17 +161,21 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
                 Subjektif (Keluhan Utama Pendaftaran)
               </h3>
             </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-semibold text-gray-600 border border-gray-200">
-              Read-Only (Diinput Saat Pendaftaran)
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
+              Anamnesis / Keluhan Pasien
             </span>
           </div>
           <textarea
             rows={3}
-            readOnly
-            disabled
+            disabled={isReadOnly || isWaitingToCall}
             value={formData.keluhanSubjective}
-            placeholder="Keluhan awal pasien dari pendaftaran..."
-            className="w-full rounded-xl border border-gray-200 bg-gray-100/80 p-3 text-xs font-medium text-gray-700 cursor-not-allowed shadow-2xs focus:outline-none"
+            onChange={(e) => handleChange("keluhanSubjective", e.target.value)}
+            placeholder="Keluhan utama dan hasil anamnesis pasien..."
+            className={`w-full rounded-xl border p-3 text-xs font-medium text-gray-800 shadow-2xs focus:border-emerald-600 focus:outline-none ${
+              isReadOnly || isWaitingToCall
+                ? "bg-gray-100/80 border-gray-200 cursor-not-allowed text-gray-600"
+                : "border-gray-200 bg-white"
+            }`}
           />
         </div>
 

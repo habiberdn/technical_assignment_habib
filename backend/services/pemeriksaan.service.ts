@@ -12,14 +12,14 @@ export class PemeriksaanService {
       throw new HttpError(404, "Data registrasi/kunjungan tidak ditemukan");
     }
 
-    if (currentUser.role !== "DOKTER") {
+    if (currentUser.role !== "DOKTER" && currentUser.role !== "ADMIN") {
       throw new HttpError(
         403,
-        "Akses ditolak. Hanya Dokter yang berhak melakukan dan menginput pemeriksaan medis SOAP."
+        "Akses ditolak. Hanya Dokter atau Administrator yang berhak menginput pemeriksaan medis SOAP."
       );
     }
 
-    if (registrasi.dokterId !== currentUser.id) {
+    if (currentUser.role === "DOKTER" && registrasi.dokterId !== currentUser.id) {
       throw new HttpError(
         403,
         "Akses ditolak. Anda hanya dapat melakukan pemeriksaan untuk pasien yang terdaftar di bawah penanganan Anda"

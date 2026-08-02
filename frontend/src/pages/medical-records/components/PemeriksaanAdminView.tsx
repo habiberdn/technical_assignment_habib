@@ -171,7 +171,7 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Tekanan Darah
               </div>
               <p className="text-sm font-bold font-mono text-gray-900">
-                120/80{" "}
+                {queue.pemeriksaan ? `${queue.pemeriksaan.tekananSistolik}/${queue.pemeriksaan.tekananDiastolik}` : "-"}{" "}
                 <span className="text-[10px] text-gray-500 font-normal">
                   mmHg
                 </span>
@@ -184,7 +184,7 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Suhu Tubuh
               </div>
               <p className="text-sm font-bold font-mono text-gray-900">
-                36.5{" "}
+                {queue.pemeriksaan ? queue.pemeriksaan.suhuTubuh : "-"}{" "}
                 <span className="text-[10px] text-gray-500 font-normal">
                   °C
                 </span>
@@ -197,7 +197,7 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Berat Badan
               </div>
               <p className="text-sm font-bold font-mono text-gray-900">
-                60{" "}
+                {queue.pemeriksaan ? queue.pemeriksaan.beratBadan : "-"}{" "}
                 <span className="text-[10px] text-gray-500 font-normal">
                   kg
                 </span>
@@ -210,7 +210,7 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Tinggi Badan
               </div>
               <p className="text-sm font-bold font-mono text-gray-900">
-                165{" "}
+                {queue.pemeriksaan ? queue.pemeriksaan.tinggiBadan : "-"}{" "}
                 <span className="text-[10px] text-gray-500 font-normal">
                   cm
                 </span>
@@ -231,9 +231,15 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Asesmen / Diagnosa Medis
               </h3>
             </div>
-            <p className="text-xs text-gray-500 italic py-2">
-              Belum ada diagnosa dimasukkan oleh dokter.
-            </p>
+            {queue.pemeriksaan?.diagnosa ? (
+              <p className="text-xs text-gray-800 leading-relaxed font-medium">
+                {queue.pemeriksaan.diagnosa}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 italic py-2">
+                Belum ada diagnosa dimasukkan oleh dokter.
+              </p>
+            )}
           </div>
 
           {/* Plan */}
@@ -246,9 +252,15 @@ export const PemeriksaanAdminView: React.FC<PemeriksaanAdminViewProps> = ({
                 Plan / Rencana Terapi
               </h3>
             </div>
-            <p className="text-xs text-gray-500 italic py-2">
-              Belum ada rencana terapi dimasukkan oleh dokter.
-            </p>
+            {queue.pemeriksaan?.rencanaTerapi ? (
+              <p className="text-xs text-gray-800 leading-relaxed font-medium">
+                {queue.pemeriksaan.rencanaTerapi}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-500 italic py-2">
+                Belum ada rencana terapi dimasukkan oleh dokter.
+              </p>
+            )}
           </div>
         </div>
       </div>

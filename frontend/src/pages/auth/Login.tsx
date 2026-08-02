@@ -35,8 +35,16 @@ export function LoginPage() {
         password,
       });
 
-      if (res.data && res.data.data) {
-        setAuthUser(res.data.data.user || res.data.data);
+      const loggedUser = res.data?.data?.user || res.data?.data;
+      if (loggedUser) {
+        setAuthUser(loggedUser);
+        if (loggedUser.role === "DOKTER") {
+          navigate("/pemeriksaan", { replace: true });
+          return;
+        } else if (loggedUser.role === "PETUGAS_PENDAFTARAN") {
+          navigate("/antrean", { replace: true });
+          return;
+        }
       } else {
         await checkAuth();
       }
@@ -78,15 +86,15 @@ export function LoginPage() {
         </p>
 
         {errorMessage && (
-          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+          <div className="mt-4 rounded-xl bg-red-50 p-3 text-center text-xs font-semibold text-red-700 border border-red-200 shadow-2xs">
             {errorMessage}
-          </p>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="identifier" className="mb-1 block text-xs font-semibold text-[#8a4a43]">
-              Username atau Email
+            <label className="block text-xs font-semibold text-gray-700">
+              Username
             </label>
             <div className="relative">
               <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />

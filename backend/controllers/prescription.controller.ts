@@ -4,7 +4,7 @@ import { prescriptionService } from "../services/prescription.service.js";
 export class PrescriptionController {
   async createPrescription(req: Request, res: Response, next: NextFunction) {
     try {
-      const prescription = await prescriptionService.createPrescription(req.body);
+      const prescription = await prescriptionService.createPrescription(req.user!, req.body);
       return res.status(201).json({
         success: true,
         message: "Resep obat berhasil ditambahkan",

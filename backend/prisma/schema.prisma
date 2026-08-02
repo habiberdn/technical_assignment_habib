@@ -58,6 +58,8 @@ model User {
   registrasiSebagaiDokter  Registrasi[] @relation("DokterRegistrasi")
   registrasiSebagaiPetugas Registrasi[] @relation("PetugasRegistrasi")
 
+  @@index([poliId])
+  @@index([role])
   @@map("users")
 }
 
@@ -119,6 +121,10 @@ model Registrasi {
   // Menjamin nomor antrean tidak bentrok per poli per hari
   @@unique([poliId, tanggalKunjungan, nomorUrutAntrean])
   @@index([tanggalKunjungan, status])
+  @@index([dokterId])
+  @@index([pasienId])
+  @@index([poliId])
+  @@index([statusAntrean])
   @@map("registrasi")
 }
 
@@ -159,6 +165,7 @@ model TindakanMedis {
   namaTindakan  String
   catatan       String?
 
+  @@index([pemeriksaanId])
   @@map("tindakan_medis")
 }
 
@@ -171,5 +178,6 @@ model ResepObat {
   jumlah        Int
   aturanPakai   String
 
+  @@index([pemeriksaanId])
   @@map("resep_obat")
 }
