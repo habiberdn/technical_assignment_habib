@@ -1,0 +1,856 @@
+{
+  "info": {
+    "_postman_id": "6e45034b-88fd-4300-abe0-efabdb2d9806",
+    "name": "Klinik Medis API Collection",
+    "description": "Dokumentasi Lengkap API Technical Maganghub (Authentication, Patient, Registration, Queue, Medical Record, Prescription, Poli, Users, Dashboard)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27266035"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "POST /login - Autentikasi user dan mendapatkan JWT token."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "description": "POST /logout - Out dari sesi antrean / aplikasi."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "change-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctors List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/doctors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "doctors"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Patient (Pasien)",
+      "item": [
+        {
+          "name": "GET /patients (Daftar Pasien)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients?page=1&limit=10&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /patients/:id (Detail Pasien)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PASIEN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /patients (Tambah Pasien)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"noRekamMedis\": \"RM-2026-0001\",\n  \"nik\": \"3171012345670001\",\n  \"nama\": \"Ahmad Subagyo\",\n  \"jenisKelamin\": \"LAKI_LAKI\",\n  \"tanggalLahir\": \"1990-05-15\",\n  \"noTelepon\": \"081234567890\",\n  \"alamat\": \"Jl. Merdeka No. 10 Jakarta\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/patients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /patients/:id (Edit Pasien)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Ahmad Subagyo Update\",\n  \"noTelepon\": \"081299998888\",\n  \"alamat\": \"Jl. Merdeka No. 12 Jakarta\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/patients/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PASIEN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /patients/:id (Hapus Pasien)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/patients/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "patients",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PASIEN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Registration (Registrasi)",
+      "item": [
+        {
+          "name": "GET /registrations (Daftar Registrasi)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/registrations?tanggalKunjungan=2026-08-02&poliId=&dokterId=&status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ],
+              "query": [
+                {
+                  "key": "tanggalKunjungan",
+                  "value": "2026-08-02"
+                },
+                {
+                  "key": "poliId",
+                  "value": ""
+                },
+                {
+                  "key": "dokterId",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /registrations (Buat Registrasi Baru)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pasienId\": \"PASIEN_ID_HERE\",\n  \"dokterId\": \"DOKTER_USER_ID_HERE\",\n  \"poliId\": \"POLI_ID_HERE\",\n  \"tanggalKunjungan\": \"2026-08-02\",\n  \"jenisPembayaran\": \"UMUM\",\n  \"keluhanAwal\": \"Demam dan pusing sejak kemarin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /registrations/:id (Update Status Registrasi)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CHECK_IN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registrations/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registrations",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REGISTRASI_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Queue (Antrean)",
+      "item": [
+        {
+          "name": "GET /queues (Daftar Antrean Pasien)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues?tanggalKunjungan=2026-08-02",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues"
+              ],
+              "query": [
+                {
+                  "key": "tanggalKunjungan",
+                  "value": "2026-08-02"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /queues (Buat Antrean Pasien Baru)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pasienId\": \"PASIEN_ID_HERE\",\n  \"dokterId\": \"DOKTER_USER_ID_HERE\",\n  \"poliId\": \"POLI_ID_HERE\",\n  \"tanggalKunjungan\": \"2026-08-02\",\n  \"jenisPembayaran\": \"BPJS\",\n  \"keluhanAwal\": \"Batuk berdahak\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /queues/:id/call (Panggil Nomor Antrean Pasien)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues/:id/call",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                ":id",
+                "call"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REGISTRASI_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /queues/:id/status (Update Status Antrean Pasien)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PEMERIKSAAN\",\n  \"statusAntrean\": \"DIPANGGIL\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues/:id/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                ":id",
+                "status"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "REGISTRASI_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /queues/panggil-next (Panggil Antrean Berikutnya)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues/panggil-next?poliId=POLI_ID_HERE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "queues",
+                "panggil-next"
+              ],
+              "query": [
+                {
+                  "key": "poliId",
+                  "value": "POLI_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Medical Record (Rekam Medis & SOAP)",
+      "item": [
+        {
+          "name": "POST /medical-records (Simpan Pemeriksaan SOAP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrasiId\": \"REGISTRASI_ID_HERE\",\n  \"keluhanSubjective\": \"Pasien mengeluh pusing dan demam 2 hari\",\n  \"tekananSistolik\": 120,\n  \"tekananDiastolik\": 80,\n  \"suhuTubuh\": 37.5,\n  \"beratBadan\": 65,\n  \"tinggiBadan\": 170,\n  \"diagnosa\": \"A90 - Dengue Fever\",\n  \"rencanaTerapi\": \"Istirahat cukup dan banyak minum air putih\",\n  \"tindakan\": [\n    {\n      \"namaTindakan\": \"Pemeriksaan Darah Rutin\",\n      \"catatan\": \"Cek Trombosit\"\n    }\n  ],\n  \"resep\": [\n    {\n      \"namaObat\": \"Paracetamol 500mg\",\n      \"dosis\": \"3x1\",\n      \"jumlah\": 10,\n      \"aturanPakai\": \"Sesudah makan\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medical-records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /medical-records/:patientId (Riwayat Medis Pasien)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/:patientId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                ":patientId"
+              ],
+              "variable": [
+                {
+                  "key": "patientId",
+                  "value": "PASIEN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /medical-records/detail/:id (Detail SOAP)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/detail/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                "detail",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PEMERIKSAAN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /medical-records/:id (Update SOAP)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keluhanSubjective\": \"Pusing berkurang\",\n  \"tekananSistolik\": 120,\n  \"tekananDiastolik\": 80,\n  \"suhuTubuh\": 36.6,\n  \"beratBadan\": 65,\n  \"tinggiBadan\": 170,\n  \"diagnosa\": \"A90 - Dengue Fever\",\n  \"rencanaTerapi\": \"Lanjutkan obat\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medical-records/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medical-records",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PEMERIKSAAN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Prescription (Resep Obat)",
+      "item": [
+        {
+          "name": "POST /prescriptions (Buat Resep Obat)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pemeriksaanId\": \"PEMERIKSAAN_ID_HERE\",\n  \"resep\": [\n    {\n      \"namaObat\": \"Amoxicillin 500mg\",\n      \"dosis\": \"3x1\",\n      \"jumlah\": 15,\n      \"aturanPakai\": \"Sesudah makan habiskan\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prescriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescriptions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /prescriptions/:id (Detail Resep)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/prescriptions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prescriptions",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PEMERIKSAAN_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Poliklinik & User Management (Admin)",
+      "item": [
+        {
+          "name": "GET /api/poli (Daftar Poliklinik)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/poli",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "poli"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/poli (Tambah Poliklinik)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kode\": \"POLI-GGI\",\n  \"nama\": \"Poliklinik Gigi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/poli",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "poli"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/users (Daftar Pengguna / Staf)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?role=&poliId=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": ""
+                },
+                {
+                  "key": "poliId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/users (Tambah User / Dokter / Petugas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dokter.budi\",\n  \"password\": \"password123\",\n  \"nama\": \"dr. Budi Santoso, Sp.PD\",\n  \"role\": \"DOKTER\",\n  \"poliId\": \"POLI_ID_HERE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH /api/users/:id/reset-password (Reset Password Staff)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id",
+                "reset-password"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_HERE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/dashboard/stats (Statistik Dashboard)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "stats"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
