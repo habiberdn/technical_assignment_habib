@@ -47,7 +47,7 @@ export class PemeriksaanController {
 
   async getRiwayatPemeriksaanPasien(req: Request, res: Response, next: NextFunction) {
     try {
-      const pasienId = String(req.params.pasienId);
+      const pasienId = String(req.params.pasienId || req.params.patientId);
       const result = await pemeriksaanService.getRiwayatPemeriksaanPasien(pasienId);
       return res.status(200).json({
         success: true,

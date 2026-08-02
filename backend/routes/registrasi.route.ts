@@ -35,13 +35,39 @@ registrasiRouter.post(
   registrasiController.createRegistrasi
 );
 
+registrasiRouter.put(
+  "/:id",
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
+  validateRequest(updateStatusRegistrasiSchema),
+  registrasiController.updateStatus
+);
+
 registrasiRouter.patch(
   "/:id/panggil",
   authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
   registrasiController.panggilAntrean
 );
 
+registrasiRouter.put(
+  "/:id/panggil",
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
+  registrasiController.panggilAntrean
+);
+
+registrasiRouter.put(
+  "/:id/call",
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
+  registrasiController.panggilAntrean
+);
+
 registrasiRouter.patch(
+  "/:id/status",
+  authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
+  validateRequest(updateStatusRegistrasiSchema),
+  registrasiController.updateStatus
+);
+
+registrasiRouter.put(
   "/:id/status",
   authorize("ADMIN", "PETUGAS_PENDAFTARAN", "DOKTER"),
   validateRequest(updateStatusRegistrasiSchema),

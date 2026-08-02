@@ -542,7 +542,7 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900">
                 <Pill size={15} className="text-emerald-600" />
-                Resep Obat (Opsional)
+                Resep Obat (Prescription)
               </div>
               {!isReadOnly && !isWaitingToCall && (
                 <button
@@ -561,6 +561,13 @@ export const PemeriksaanSOAPForm: React.FC<PemeriksaanSOAPFormProps> = ({
               </p>
             ) : (
               <div className="space-y-2">
+                {/* Header Table */}
+                <div className="grid grid-cols-12 gap-1.5 px-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                  <span className="col-span-5">Nama Obat</span>
+                  <span className="col-span-3">Dosis</span>
+                  <span className="col-span-3">Jumlah</span>
+                  {!isReadOnly && !isWaitingToCall && <span className="col-span-1 text-center">Aksi</span>}
+                </div>
                 {formData.resep.map((r, idx) => (
                   <div
                     key={idx}

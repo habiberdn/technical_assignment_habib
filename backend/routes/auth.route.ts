@@ -48,6 +48,20 @@ authRouter.post(
   authController.logout
 );
 
+authRouter.post(
+  "/",
+  authLimiter,
+  (req: Request, res: Response, next: NextFunction) => {
+    if (req.baseUrl.endsWith("/login")) {
+      return validateRequest(loginUserSchema)(req, res, () => authController.login(req, res, next));
+    }
+    if (req.baseUrl.endsWith("/logout")) {
+      return authenticate(req, res, () => authController.logout(req, res, next));
+    }
+    next();
+  }
+);
+
 authRouter.get(
   "/me",
   authenticate,

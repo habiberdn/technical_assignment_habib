@@ -23,6 +23,12 @@ pemeriksaanRouter.get(
 );
 
 pemeriksaanRouter.get(
+  "/patient/:patientId",
+  authorize("DOKTER", "ADMIN", "PETUGAS_PENDAFTARAN"),
+  pemeriksaanController.getRiwayatPemeriksaanPasien
+);
+
+pemeriksaanRouter.get(
   "/:id",
   authorize("DOKTER", "ADMIN", "PETUGAS_PENDAFTARAN"),
   pemeriksaanController.getPemeriksaanById
